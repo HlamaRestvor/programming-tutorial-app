@@ -34,7 +34,15 @@ pub async fn send_confirmation_email(
     code: &str,
     brevo_api_key: &str,
 ) -> Result<(), reqwest::Error> {
-    dotenvy::dotenv().unwrap();
+    match dotenvy::dotenv() {
+        Ok(path) => {
+            tracing::debug!(?path, "Loaded .env");
+        }
+        Err(err) if err.not_found() => {
+            tracing::debug!("No .env file; using environment variables");
+        }
+        Err(err) => return Err(err.into()),
+    }
 
     // Dev mode: skip sending if no key configured
     if brevo_api_key.is_empty() {
@@ -44,7 +52,12 @@ pub async fn send_confirmation_email(
 
     let client = reqwest::Client::new();
     let body = serde_json::json!({
-        "sender": { "name": "Ferris Garden", "email": env::var("BREVO_SENDER_EMAIL").unwrap() },
+        "sender": { "name": "Ferris Garden", "email": match env::var("BREVO_SENDER_EMAIL") {
+        Ok(path) => {
+            tracing::debug!(?path, "Loaded .env");
+        }
+        Err(err) => return Err(err.into()),
+    } },
         "to": [{ "email": to_email }],
         "subject": "Your Ferris Garden confirmation code",
         "htmlContent": format!(
@@ -78,7 +91,15 @@ mod tests {
     use super::*;
     #[test]
     fn test_generate_confirmation_code() {
-        dotenvy::dotenv().unwrap();
+        match dotenvy::dotenv() {
+            Ok(path) => {
+                tracing::debug!(?path, "Loaded .env");
+            }
+            Err(err) if err.not_found() => {
+                tracing::debug!("No .env file; using environment variables");
+            }
+            Err(err) => return Err(err.into()),
+        }
         println!("{}", env::var("BREVO_SENDER_EMAIL").unwrap());
     }
 }

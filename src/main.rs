@@ -35,7 +35,15 @@ use crate::state::AppStateInner;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    dotenvy::dotenv()?;
+    match dotenvy::dotenv() {
+        Ok(path) => {
+            tracing::debug!(?path, "Loaded .env");
+        }
+        Err(err) if err.not_found() => {
+            tracing::debug!("No .env file; using environment variables");
+        }
+        Err(err) => return Err(err.into()),
+    }
 
     // 1. Initialize tracing
     tracing_subscriber::registry()
