@@ -41,7 +41,7 @@ pub async fn send_confirmation_email(
         Err(err) if err.not_found() => {
             tracing::debug!("No .env file; using environment variables");
         }
-        Err(err) => return Err(err.into()),
+        Err(err) => tracing::debug!("{:?}", (err)),
     }
 
     // Dev mode: skip sending if no key configured
@@ -56,7 +56,7 @@ pub async fn send_confirmation_email(
         Ok(path) => {
             tracing::debug!(?path, "Loaded .env");
         }
-        Err(err) => return Err(err.into()),
+        Err(err) => tracing::debug!("{:?}", (err)),
     } },
         "to": [{ "email": to_email }],
         "subject": "Your Ferris Garden confirmation code",
@@ -91,15 +91,6 @@ mod tests {
     use super::*;
     #[test]
     fn test_generate_confirmation_code() {
-        match dotenvy::dotenv() {
-            Ok(path) => {
-                tracing::debug!(?path, "Loaded .env");
-            }
-            Err(err) if err.not_found() => {
-                tracing::debug!("No .env file; using environment variables");
-            }
-            Err(err) => tracing::debug!(Err(err.into())),
-        }
         println!("{}", env::var("BREVO_SENDER_EMAIL").unwrap());
     }
 }
