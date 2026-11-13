@@ -1,0 +1,264 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ translation.leaderboard_title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/leaderboard.css">
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+
+  <!-- Hero Header -->
+  <header class="leaderboard-hero">
+    <div class="leaderboard-badge">🏆 {{ translation.leaderboard_badge }}</div>
+    <h1 class="leaderboard-title">{{ translation.leaderboard_title }}</h1>
+    <p class="leaderboard-subtitle">{{ translation.leaderboard_subtitle }}</p>
+
+    <!-- Ferris Companion Dialogue -->
+    <div class="mascot-speech-bubble">
+      <div class="mascot-mini-avatar">
+        <svg class="fg-svg" width="36" height="28" viewBox="0 0 18 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pixel Ferris">{% include "partials/fg_pixel.tera" %}</svg>
+      </div>
+      <p class="mascot-text">{{ translation.leaderboard_mascot_speech }}</p>
+    </div>
+
+    <!-- Personal Sanctuary Standing Summary Bar -->
+    <div class="player-summary-strip">
+      <div class="strip-item">
+        <span class="strip-label">{{ translation.adventures_stat_xp }}</span>
+        <span class="strip-val highlight-xp">✨ {{ user_stats.xp }}</span>
+      </div>
+      <div class="strip-divider"></div>
+      <div class="strip-item">
+        <span class="strip-label">{{ translation.adventures_stat_completed }}</span>
+        <span class="strip-val">🗺️ {{ user_stats.completed_count }} <span class="dim">/{{ quests_nbr }}</span></span>
+      </div>
+      <div class="strip-divider"></div>
+      <div class="strip-item">
+        <span class="strip-label">{{ translation.achievements_progress_label }}</span>
+        <span class="strip-val highlight-ach">🏆 {{ user_stats.unlocked_achievements_count }} <span class="dim">/{{ achievements | length }}</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs (Podium vs Achievements) -->
+  <div class="board-tabs-bar">
+    <button class="board-tab-btn active" id="tab-btn-podium" onclick="switchBoardTab('podium')">
+      {{ translation.leaderboard_tab_podium }}
+    </button>
+    <button class="board-tab-btn" id="tab-btn-achievements" onclick="switchBoardTab('achievements')">
+      {{ translation.leaderboard_tab_achievements }}
+      <span class="tab-count-pill">{{ user_stats.unlocked_achievements_count }}/{{ achievements_nbr }}</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: PODIUM & LEADERBOARD TABLE -->
+  <div class="tab-pane active" id="pane-podium">
+
+    <!-- Top 3 Podium (Pedestal Display) -->
+    {% if leaderboard_entries | length >= 3 %}
+      {% set p1 = leaderboard_entries[0] %}
+      {% set p2 = leaderboard_entries[1] %}
+      {% set p3 = leaderboard_entries[2] %}
+
+      <section class="podium-section">
+        <!-- 2nd Place (Silver) -->
+        <div class="podium-slot silver {% if p2.is_current_user %}is-you{% endif %}">
+          <div class="podium-avatar-wrap">
+            <span class="crown-icon">🥈</span>
+            <span class="podium-avatar">{{ p2.avatar_emoji }}</span>
+          </div>
+          <div class="podium-player-name">
+            {{ p2.display_name }}
+            {% if p2.is_current_user %}<span class="badge-you">{{ translation.leaderboard_you_pill }}</span>{% endif %}
+          </div>
+          <div class="podium-rank-title">{{ p2.rank_title }}</div>
+          <div class="podium-xp-pill">⚡ {{ p2.total_xp }} XP</div>
+          <div class="pedestal-block p2-block">
+            <span class="pedestal-num">2</span>
+          </div>
+        </div>
+
+        <!-- 1st Place (Gold - Elevated) -->
+        <div class="podium-slot gold {% if p1.is_current_user %}is-you{% endif %}">
+          <div class="podium-avatar-wrap">
+            <span class="crown-icon">👑</span>
+            <span class="podium-avatar gold-glow">{{ p1.avatar_emoji }}</span>
+          </div>
+          <div class="podium-player-name">
+            {{ p1.display_name }}
+            {% if p1.is_current_user %}<span class="badge-you">{{ translation.leaderboard_you_pill }}</span>{% endif %}
+          </div>
+          <div class="podium-rank-title">{{ p1.rank_title }}</div>
+          <div class="podium-xp-pill gold">✨ {{ p1.total_xp }} XP</div>
+          <div class="pedestal-block p1-block">
+            <span class="pedestal-num">1</span>
+          </div>
+        </div>
+
+        <!-- 3rd Place (Bronze) -->
+        <div class="podium-slot bronze {% if p3.is_current_user %}is-you{% endif %}">
+          <div class="podium-avatar-wrap">
+            <span class="crown-icon">🥉</span>
+            <span class="podium-avatar">{{ p3.avatar_emoji }}</span>
+          </div>
+          <div class="podium-player-name">
+            {{ p3.display_name }}
+            {% if p3.is_current_user %}<span class="badge-you">{{ translation.leaderboard_you_pill }}</span>{% endif %}
+          </div>
+          <div class="podium-rank-title">{{ p3.rank_title }}</div>
+          <div class="podium-xp-pill">🛡️ {{ p3.total_xp }} XP</div>
+          <div class="pedestal-block p3-block">
+            <span class="pedestal-num">3</span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    <!-- Full Ranking Table -->
+    <div class="table-responsive-card">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th class="th-rank">{{ translation.leaderboard_col_rank }}</th>
+            <th class="th-player">{{ translation.leaderboard_col_player }}</th>
+            <th class="th-title">{{ translation.leaderboard_col_title }}</th>
+            <th class="th-quests">{{ translation.leaderboard_col_quests }}</th>
+            <th class="th-trophies">{{ translation.leaderboard_col_achievements }}</th>
+            <th class="th-xp">{{ translation.leaderboard_col_xp }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in leaderboard_entries %}
+            <tr class="table-row {% if entry.is_current_user %}current-user-row{% endif %}">
+              <td class="td-rank">
+                {% if entry.rank == 1 %}
+                  <span class="rank-medal gold">🥇 1</span>
+                {% elif entry.rank == 2 %}
+                  <span class="rank-medal silver">🥈 2</span>
+                {% elif entry.rank == 3 %}
+                  <span class="rank-medal bronze">🥉 3</span>
+                {% else %}
+                  <span class="rank-number">#{{ entry.rank }}</span>
+                {% endif %}
+              </td>
+              <td class="td-player">
+                <div class="player-cell">
+                  <span class="cell-avatar">{{ entry.avatar_emoji }}</span>
+                  <div class="cell-info">
+                    <span class="cell-name">{{ entry.display_name }}</span>
+                    {% if entry.is_current_user %}
+                      <span class="badge-you-inline">{{ translation.leaderboard_you_pill }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="td-title">
+                <span class="title-pill">{{ entry.rank_title }}</span>
+              </td>
+              <td class="td-quests">
+                <span class="stat-bubble quests-bubble">{{ entry.completed_quests }}/{{ achievements | length }}</span>
+              </td>
+              <td class="td-trophies">
+                <span class="stat-bubble ach-bubble">🏆 {{ entry.unlocked_achievements }}</span>
+              </td>
+              <td class="td-xp">
+                <span class="xp-cell-val">{{ entry.total_xp }} XP</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: ACHIEVEMENTS SHOWCASE -->
+  <div class="tab-pane" id="pane-achievements" hidden>
+
+    <!-- Progress Overview Bar -->
+    <div class="ach-overview-card">
+      <div class="ach-stats-top">
+        <div class="ach-title-group">
+          <span class="ach-main-label">{{ translation.achievements_progress_label }}</span>
+          <span class="ach-progress-count">{{ user_stats.unlocked_achievements_count }} <span class="dim">/{{ achievements_nbr }}</span></span>
+        </div>
+        <div class="ach-progress-pct">
+          {{ (user_stats.unlocked_achievements_count * 100 / 11) | round }}%
+        </div>
+      </div>
+      <div class="ach-track">
+        <div class="ach-fill" style="width: {{ user_stats.unlocked_achievements_count * 100 / 11 }}%;"></div>
+      </div>
+    </div>
+
+    <!-- Achievements Grid -->
+    <div class="achievements-grid">
+      {% for ach in achievements %}
+        <article class="ach-card {% if ach.is_unlocked %}unlocked{% else %}locked{% endif %}">
+          <div class="ach-card-header">
+            <div class="ach-icon-box {% if ach.is_unlocked %}unlocked-glow{% endif %}">
+              {{ ach.icon }}
+            </div>
+            <div class="ach-status-badge">
+              {% if ach.is_unlocked %}
+                <span class="pill-unlocked">✓ {{ translation.achievements_status_unlocked }}</span>
+              {% else %}
+                <span class="pill-locked">🔒 {{ translation.achievements_status_locked }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <h3 class="ach-card-title">{{ ach.title }}</h3>
+          <p class="ach-card-desc">{{ ach.desc }}</p>
+
+          <div class="ach-card-footer">
+            <span class="ach-category-tag">{{ ach.category }}</span>
+            <span class="ach-reward-pill">+{{ ach.xp_bonus }} XP</span>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Client script for tab toggling -->
+<script>
+  function switchBoardTab(tabKey) {
+    const panePodium = document.getElementById('pane-podium');
+    const paneAch = document.getElementById('pane-achievements');
+    const btnPodium = document.getElementById('tab-btn-podium');
+    const btnAch = document.getElementById('tab-btn-achievements');
+
+    if (tabKey === 'achievements') {
+      panePodium.hidden = true;
+      panePodium.classList.remove('active');
+      paneAch.hidden = false;
+      paneAch.classList.add('active');
+
+      btnPodium.classList.remove('active');
+      btnAch.classList.add('active');
+      window.location.hash = 'achievements';
+    } else {
+      paneAch.hidden = true;
+      paneAch.classList.remove('active');
+      panePodium.hidden = false;
+      panePodium.classList.add('active');
+
+      btnAch.classList.remove('active');
+      btnPodium.classList.add('active');
+      window.location.hash = 'podium';
+    }
+  }
+
+  // Restore tab from hash on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash === '#achievements') {
+      switchBoardTab('achievements');
+    }
+  });
+</script>
+{% endblock %}

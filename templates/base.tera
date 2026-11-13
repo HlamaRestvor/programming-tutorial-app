@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="{{ lang | default(value="en") }}" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ translation.app_title }}{% endblock %} - Ferris & The Rust Garden</title>
+  <meta name="description" content="{{ translation.app_subtitle }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦀</text></svg>">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/sky.css">
+  {% block head_extra %}{% endblock %}
+</head>
+<body data-lang="{{ lang | default(value='en') }}"
+      data-t-auth-login="{{ translation.auth_login }}"
+      data-t-auth-logout="{{ translation.auth_logout }}"
+      data-t-auth-logged-in-as="{{ translation.auth_logged_in_as }}"
+      data-t-auth-welcome="{{ translation.auth_welcome_back }}"
+      data-t-auth-email-sent="{{ translation.auth_email_sent }}"
+      data-t-quest-completed="{{ translation.quest_status_completed }}"
+      data-t-network-error="{{ translation.runner_network_error }}"
+      data-t-ach-toast="{{ translation.achievement_unlocked_toast }}"
+      data-t-account-saved="{{ translation.account_saved_ok }}"
+      data-t-recovery-step2="{{ translation.recovery_step2_intro }}"
+>
+
+  <!-- ================================================================
+       SKY LAYER — decorative starfield behind every page.
+       Dark theme: pale twinkling stars + a glowing moon.
+       Light theme: pastel blue/violet/pink stars + a warm sun.
+       The orb drifts up with a slow parallax factor (app.js,
+       about 6x slower than the scroll). Purely decorative:
+       aria-hidden + pointer-events: none; painted behind all
+       content via z-index: -1 (see static/css/sky.css).
+       ================================================================ -->
+  <div class="sky-layer" aria-hidden="true">
+    <div class="sky-veil"></div>
+    <!-- Node lattice: 64px square grid, 1px edges, glowing dots
+         at the intersections (see .sky-grid-* in sky.css). -->
+    <div class="sky-grid sky-grid-lines"></div>
+    <div class="sky-grid sky-grid-nodes"></div>
+    <div class="sky-stars sky-stars-a"></div>
+    <div class="sky-stars sky-stars-b"></div>
+    <div class="sky-stars sky-stars-c"></div>
+    <!-- Dense layers: double the star density in BOTH themes -->
+    <div class="sky-stars sky-stars-dense-a"></div>
+    <div class="sky-stars sky-stars-dense-b"></div>
+    <div class="sky-stars sky-stars-dense-c"></div>
+    <!-- Extra layers: light theme only (4x total density there) -->
+    <div class="sky-stars sky-stars-extra-y"></div>
+    <div class="sky-stars sky-stars-extra-z"></div>
+    <span class="sky-spark sky-spark-1"></span>
+    <span class="sky-spark sky-spark-2"></span>
+    <span class="sky-spark sky-spark-3"></span>
+    <span class="sky-spark sky-spark-4"></span>
+    <div class="sky-parallax" id="sky-parallax">
+      <div class="sky-orb"></div>
+    </div>
+  </div>
+
+  <header class="header">
+    <!-- Scroll progress: 8px gradient strip pinned to the very top
+         edge of the sticky header (var(--accent-grad) fill). The
+         scaleX factor is driven by initScrollProgress() in app.js. -->
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+    <div class="header-container">
+      <a href="/?lang={{ lang }}" class="logo">
+        <span class="logo-badge">
+          <!-- Kawaii Mini Ferris — smooth semi-anime logo -->
+          <svg class="fg-svg" width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ferris">
+            <defs>
+              <radialGradient id="fgLogoShell" cx="0.5" cy="0.32" r="0.95">
+                <stop offset="0" stop-color="#FF8A50"/>
+                <stop offset="0.62" stop-color="#F74C00"/>
+                <stop offset="1" stop-color="#C33B00"/>
+              </radialGradient>
+            </defs>
+            <!-- raised pincer mitts (behind the shell) -->
+            <g fill="#F74C00">
+              <ellipse cx="18" cy="38" rx="11" ry="8" transform="rotate(-38 18 38)"/>
+              <ellipse cx="22" cy="51" rx="11" ry="8" transform="rotate(-4 22 51)"/>
+              <ellipse cx="82" cy="38" rx="11" ry="8" transform="rotate(38 82 38)"/>
+              <ellipse cx="78" cy="51" rx="11" ry="8" transform="rotate(4 78 51)"/>
+            </g>
+            <!-- dome shell -->
+            <path d="M22 66 C22 34 38 18 50 18 C62 18 78 34 78 66 C78 78 64 82 50 82 C36 82 22 78 22 66 Z" fill="url(#fgLogoShell)"/>
+            <!-- sheen -->
+            <ellipse cx="41" cy="32" rx="12" ry="6" transform="rotate(-16 41 32)" fill="#FFFFFF" opacity="0.25"/>
+            <!-- huge glossy eyes -->
+            <circle cx="38" cy="56" r="10" fill="#3A2417"/>
+            <circle cx="35" cy="53" r="3.8" fill="#FFFFFF"/>
+            <circle cx="41" cy="59" r="1.7" fill="#FFFFFF" opacity="0.85"/>
+            <circle cx="62" cy="56" r="10" fill="#3A2417"/>
+            <circle cx="59" cy="53" r="3.8" fill="#FFFFFF"/>
+            <circle cx="65" cy="59" r="1.7" fill="#FFFFFF" opacity="0.85"/>
+            <!-- blush -->
+            <ellipse cx="27" cy="64" rx="6" ry="3.5" fill="#FF8FA3" opacity="0.6"/>
+            <ellipse cx="73" cy="64" rx="6" ry="3.5" fill="#FF8FA3" opacity="0.6"/>
+            <!-- ω smile -->
+            <path d="M42 66 Q46 71 50 67 Q54 71 58 66" stroke="#7A2A10" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div class="brand-title">
+          <span class="brand-name">Ferris Garden</span>
+          <span class="brand-sub">Rust & Systems Odyssey</span>
+        </div>
+      </a>
+
+      <!-- Page Navigation lives in the BOTTOM DOCK below (MPA links) -->
+
+      <nav class="nav-actions">
+        <!-- Player XP Counter Pill (SQLite Synced) -->
+        <div class="xp-badge" title="{{ translation.xp_counter_label }}">
+          <span class="xp-icon">✨</span>
+          <span id="player-xp-counter" class="xp-value">{{ user_stats.xp }}</span>
+          <span class="xp-unit">{{ translation.xp_counter_label }}</span>
+        </div>
+
+        <!-- Language Picker -->
+        <select id="lang-picker" class="lang-picker" title="{{ translation.select_language }}">
+          <option value="ru" {% if lang == "ru" %}selected{% endif %}>ru</option>
+          <option value="en" {% if lang == "en" %}selected{% endif %}>en</option>
+          <option value="ko" {% if lang == "ko" %}selected{% endif %}>한국어</option>
+        </select>
+
+        <!-- Theme Picker -->
+        <select id="theme-picker" class="theme-picker" title="{{ translation.select_theme }}">
+          <option value="dark">🌙 {{ translation.theme_dark }}</option>
+          <option value="light">☀️ {{ translation.theme_light }}</option>
+          <option value="system">💻 {{ translation.theme_system }}</option>
+        </select>
+
+        <a href="/adventures?lang={{ lang }}" class="btn-play-header">🪄 {{ translation.start_adventure }}</a>
+
+        <!-- Auth actions live in the BOTTOM DOCK (same element IDs,
+             app.js modal wiring keeps working unchanged) -->
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       AUTH MODALS
+       ================================================================ -->
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="modal-login" hidden style="display: none" aria-modal="true" role="dialog">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close" data-modal-close="modal-login">✕</button>
+      <h2 class="modal-title">🦀 {{ translation.auth_login }}</h2>
+
+      <form class="auth-form" id="form-login" novalidate>
+        <label class="auth-label">
+          {{ translation.auth_email }}
+          <input type="email" class="input-field" id="login-email" autocomplete="email" required>
+        </label>
+        <label class="auth-label">
+          {{ translation.auth_password }}
+          <input type="password" class="input-field" id="login-password" autocomplete="current-password" required>
+        </label>
+        <div class="auth-error" id="login-error" hidden></div>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_login }}</button>
+      </form>
+
+      <p class="auth-forgot-row">
+        <a class="auth-forgot-link" href="/recovery?lang={{ lang }}">{{ translation.auth_forgot_password }}</a>
+      </p>
+
+      <p class="auth-switch">
+        {{ translation.auth_no_account }}
+        <button class="auth-switch-btn" data-switch-to="modal-register">{{ translation.auth_register }}</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- Register Modal (2-step) -->
+  <div class="modal-overlay" id="modal-register" hidden style="display: none" aria-modal="true" role="dialog">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close" data-modal-close="modal-register">✕</button>
+      <h2 class="modal-title">🌱 {{ translation.auth_register }}</h2>
+
+      <!-- Step 1: nickname + email + password -->
+      <div class="auth-step" id="register-step-1">
+        <form class="auth-form" id="form-register" novalidate>
+          <label class="auth-label">
+            {{ translation.auth_nickname }}
+            <input type="text" class="input-field" id="register-nickname" maxlength="32"
+              autocomplete="nickname" placeholder="..." required>
+          </label>
+          <label class="auth-label">
+            {{ translation.auth_email }}
+            <input type="email" class="input-field" id="register-email" autocomplete="email" required>
+          </label>
+          <label class="auth-label">
+            {{ translation.auth_password }}
+            <input type="password" class="input-field" id="register-password" autocomplete="new-password" required
+              minlength="8" placeholder="{{ translation.auth_password_min }}">
+          </label>
+          <div class="auth-error" id="register-error" hidden></div>
+          <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_send_code }}</button>
+        </form>
+
+        <p class="auth-switch">
+          {{ translation.auth_already_have_account }}
+          <button class="auth-switch-btn" data-switch-to="modal-login">{{ translation.auth_login }}</button>
+        </p>
+      </div>
+
+      <!-- Step 2: confirmation code -->
+      <div class="auth-step" id="register-step-2" hidden>
+        <p class="auth-info-text">{{ translation.auth_email_sent }}</p>
+        <p class="auth-info-text auth-info-hint">{{ translation.auth_email_sent_multi_hint }}</p>
+        <form class="auth-form" id="form-verify" novalidate>
+          <label class="auth-label">
+            {{ translation.auth_confirm_code }}
+            <input type="text" class="input-field input-code" id="verify-code"
+              maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
+          </label>
+          <div class="auth-error" id="verify-error" hidden></div>
+          <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_verify }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="modal-logout-confirm" hidden style="display: none" aria-modal="true" role="dialog">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close" data-modal-close="modal-logout-confirm">✕</button>
+      <h2 class="modal-title">👋 {{ translation.auth_logout }}</h2>
+      <p class="auth-info-text">{{ translation.auth_logout_confirm_desc }}</p>
+      <form class="auth-form" id="form-logout" novalidate>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_logout }}</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div>
+        <strong>Ferris Garden</strong> {{ version }} &bull; Built with Rust + Axum + SQLx + Tera + Vanilla JS
+      </div>
+      <div class="footer-love">
+        <span>{{ translation.footer_crafted }}</span>
+        <span>🦀 ⚡ 🌸</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================
+       BOTTOM NAVIGATION DOCK
+       Floating pill fixed to the bottom-center of the viewport:
+       page links (icon above label) on the left, auth buttons behind
+       a thin separator on the right. Auth button element IDs are the
+       same ones the modal wiring in app.js listens on.
+       Icons are inline vector SVGs stroked with currentColor — their
+       hue is themed per icon in layout.css (vivid in dark, soft grey
+       in light).
+       ================================================================ -->
+  <nav class="dock-nav" id="dock-nav" aria-label="Main navigation">
+    <a href="/?lang={{ lang }}" class="dock-btn dock-home {% if active_page == 'home' %}active{% endif %}">
+      <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.2 12 4.4l8 6.8"/><path d="M6.2 10.2v9.4h11.6v-9.4"/><path d="M10.2 19.6v-5h3.6v5"/></svg></span>
+      <span class="dock-label">{{ translation.nav_home }}</span>
+    </a>
+    <a href="/adventures?lang={{ lang }}" class="dock-btn dock-map {% if active_page == 'adventures' %}active{% endif %}">
+      <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 4.4 3.4 6.5v13l5.8-2.1 5.6 2.1 5.8-2.1v-13l-5.8 2.1-5.6-2.1Z"/><path d="M9.2 4.4v13M14.8 6.5v13"/></svg></span>
+      <span class="dock-label">{{ translation.nav_adventures_short }}</span>
+    </a>
+    <a href="/codex?lang={{ lang }}" class="dock-btn dock-codex {% if active_page == 'codex' %}active{% endif %}">
+      <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10 4.9 7 4.5 3.6 5.1v13.3c3.4-.6 6.4-.2 8.4 1.5 2-1.7 5-2.1 8.4-1.5V5.1C17 4.5 14 4.9 12 6.6Z"/><path d="M12 6.6v13.3"/></svg></span>
+      <span class="dock-label">{{ translation.nav_codex_short }}</span>
+    </a>
+    <a href="/leaderboard?lang={{ lang }}" class="dock-btn dock-trophy {% if active_page == 'leaderboard' %}active{% endif %}">
+      <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4.4h8v5.2a4 4 0 0 1-8 0V4.4Z"/><path d="M8 5.8H5.1a2.9 2.9 0 0 0 3 4.6M16 5.8h2.9a2.9 2.9 0 0 1-3 4.6"/><path d="M12 13.6v3.2"/><path d="M10.6 16.8h2.8l.8 3.2h-4.4l.8-3.2Z"/><path d="M8.4 20.2h7.2"/></svg></span>
+      <span class="dock-label">{{ translation.nav_leaderboard_short }}</span>
+    </a>
+
+    <!-- Account cabinet: visible only when signed in -->
+    <a href="/account?lang={{ lang }}" class="dock-btn dock-account"
+      {% if not user_stats.user_email %}hidden style="display: none;"{% endif %}
+    >
+      <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.4" r="3.6"/><path d="M5.2 19.8c1.1-3.6 3.7-5.2 6.8-5.2s5.7 1.6 6.8 5.2"/></svg></span>
+      <span class="dock-label">{{ translation.nav_account_short }}</span>
+    </a>
+
+    <span class="dock-sep" aria-hidden="true"></span>
+
+    <!-- Guest state -->
+      <button type="button" class="dock-btn dock-sprout" id="btn-open-register"
+        {% if lang == "ru" %} style="gap: 0.3rem;"{% endif %}
+        {% if user_stats.user_email %}hidden style="display: none;"{% endif %}
+      >
+        <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4v-7.2"/><path d="M12 13.2C12 9.6 9.2 7.4 4.8 7.4c0 3.7 2.9 5.8 7.2 5.8Z"/><path d="M12 11.3c0-3 2.4-4.9 6.4-4.9 0 3.4-2.5 5.3-6.4 5.3"/></svg></span>
+        <span class="dock-label"
+          {% if lang == "ru" %} style="position: relative; top: .0rem; font-size: .75em; letter-spacing: -.05rem;"{% endif %}
+        >{{ translation.auth_register_short }}</span>
+      </button>
+      <button type="button" class="dock-btn dock-key" id="btn-open-login"
+        {% if user_stats.user_email %}hidden style="display: none;"{% endif %}
+      >
+        <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.2" cy="12" r="3.4"/><path d="M11.6 12h8.8M16.6 12v2.7M19.8 12v3.4"/></svg></span>
+        <span class="dock-label">{{ translation.auth_login }}</span>
+      </button>
+    <!-- Logged-in state -->
+      <button type="button" class="dock-btn dock-exit" id="btn-logout"
+        title="{% if user_stats.user_email %}{{ translation.auth_logged_in_as }}: {{ user_stats.user_email }}{% endif %}"
+        {% if not user_stats.user_email %}hidden style="display: none;"{% endif %}
+      >
+        <span class="dock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.4 20.4H6a1.6 1.6 0 0 1-1.6-1.6V5.2A1.6 1.6 0 0 1 6 3.6h3.4"/><path d="M15.4 16.4 20 12l-4.6-4.4"/><path d="M20 12H9.8"/></svg></span>
+        <span class="dock-label">{{ translation.auth_logout }}</span>
+      </button>
+  </nav>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts_extra %}{% endblock %}
+</body>
+</html>

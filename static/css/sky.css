@@ -1,0 +1,723 @@
+/* ============================================================
+   Ferris Garden — Sky Layer
+   Fixed decorative starfield behind every page.
+   * Dark theme:  pale twinkling stars + a glowing moon
+   * Light theme: pastel blue/violet/pink gradient stars + a warm sun
+   * A faint square node-lattice (64px grid, 1px edges, glowing
+     3px dots at the intersections) spans the whole sky.
+   The orb (moon/sun) drifts with a slow scroll parallax
+   (see initSkyParallax() in static/js/app.js — the orb moves up
+   about 6x slower than the scroll, mirroring the reference site).
+   The layer is aria-hidden and pointer-events: none: purely
+   decorative. z-index: -1 paints it above the html background
+   but below all page content (bg lives on `html`, not body).
+   ============================================================ */
+
+.sky-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Depth veil: deepens the night sky without altering page tokens */
+.sky-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(2, 3, 10, 0.50) 0%,
+    rgba(6, 10, 32, 0.36) 48%,
+    rgba(10, 22, 64, 0.28) 100%
+  );
+}
+[data-theme="light"] .sky-veil {
+  background: linear-gradient(
+    180deg,
+    rgba(125, 211, 252, 0.10) 0%,
+    rgba(196, 181, 253, 0.10) 55%,
+    rgba(249, 168, 212, 0.12) 100%
+  );
+}
+
+/* ------------------------------------------------------------
+   Node lattice: a regular 64px square grid.
+   * Edges: two 1px linear-gradient rules, just barely visible —
+     "more or less distinct, though faint".
+   * Nodes: 3px dots (radius 1.5px) painted with a radial gradient
+     centered at (6px, 6px) of each tile; the layer is shifted
+     -6px so the dots land exactly on the line intersections.
+     A second radial paints a soft blurred glow halo behind each
+     dot so it reads clearly in both themes.
+   Dark: nodes pale & bright, noticeably stronger than edges.
+   Light: nodes light gray, still stronger than the faint edges.
+   ------------------------------------------------------------ */
+.sky-grid {
+  position: absolute;
+  inset: 0;
+  --grid-line: rgba(159, 176, 255, 0.09);
+  --grid-node: rgba(228, 236, 255, 0.85);
+  --grid-node-glow: rgba(168, 190, 255, 0.35);
+}
+.sky-grid-lines {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.sky-grid-nodes {
+  background-image:
+    radial-gradient(circle at 6.5px 6.5px, var(--grid-node) 0 1px, transparent 2px),
+    radial-gradient(circle at 6.5px 6.5px, var(--grid-node-glow) 0 1px, transparent 2px);
+  background-size: 64px 64px;
+  background-position: -6px -6px;
+}
+[data-theme="light"] .sky-grid {
+  --grid-line: rgba(104, 116, 150, 0.16);
+  --grid-node: rgba(120, 132, 156, 0.62);
+  --grid-node-glow: rgba(120, 132, 156, 0.20);
+}
+
+/* ------------------------------------------------------------
+   Star layers: one shared box-shadow map per layer, theme-tinted
+   through --star-c. Every star is drawn twice: a crisp core and
+   a soft blurred glow shadow around it (the glow makes the tiniest
+   stars read clearly — a human-eye trick suggested for starfields).
+   Layer census:  base a/b/c (44+34+26) + dense a/b/c (44+34+26)
+   are visible in BOTH themes (dark total = 208 stars, i.e. 2x the
+   previous density by area); extra y/z (104+104) join them only
+   in the light theme (light total = 416, i.e. 4x by area).
+   ------------------------------------------------------------ */
+.sky-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+/* Tiny stars */
+.sky-stars-a {
+  width: 1px;
+  height: 1px;
+  --star-c: rgba(255, 255, 255, 0.85);
+  --star-glow: rgba(174, 196, 255, 0.30);
+  box-shadow:
+    93.14vw 34.83vh var(--star-c), 93.14vw 34.83vh 3.5px var(--star-glow),
+    73.92vw 72.07vh var(--star-c), 73.92vw 72.07vh 3.5px var(--star-glow),
+    19.92vw 12.62vh var(--star-c), 19.92vw 12.62vh 3.5px var(--star-glow),
+    90.97vw 81.63vh var(--star-c), 90.97vw 81.63vh 3.5px var(--star-glow),
+    59.94vw 36.76vh var(--star-c), 59.94vw 36.76vh 3.5px var(--star-glow),
+    77.43vw 77.72vh var(--star-c), 77.43vw 77.72vh 3.5px var(--star-glow),
+    47.09vw 95.08vh var(--star-c), 47.09vw 95.08vh 3.5px var(--star-glow),
+    38.65vw 14.84vh var(--star-c), 38.65vw 14.84vh 3.5px var(--star-glow),
+    2.96vw 37.44vh var(--star-c), 2.96vw 37.44vh 3.5px var(--star-glow),
+    29.19vw 53.60vh var(--star-c), 29.19vw 53.60vh 3.5px var(--star-glow),
+    81.93vw 4.69vh var(--star-c), 81.93vw 4.69vh 3.5px var(--star-glow),
+    36.98vw 67.19vh var(--star-c), 36.98vw 67.19vh 3.5px var(--star-glow),
+    63.36vw 15.04vh var(--star-c), 63.36vw 15.04vh 3.5px var(--star-glow),
+    8.74vw 11.79vh var(--star-c), 8.74vw 11.79vh 3.5px var(--star-glow),
+    3.18vw 72.78vh var(--star-c), 3.18vw 72.78vh 3.5px var(--star-glow),
+    36.70vw 4.16vh var(--star-c), 36.70vw 4.16vh 3.5px var(--star-glow),
+    1.82vw 79.09vh var(--star-c), 1.82vw 79.09vh 3.5px var(--star-glow),
+    32.98vw 2.61vh var(--star-c), 32.98vw 2.61vh 3.5px var(--star-glow),
+    33.02vw 83.56vh var(--star-c), 33.02vw 83.56vh 3.5px var(--star-glow),
+    1.31vw 67.02vh var(--star-c), 1.31vw 67.02vh 3.5px var(--star-glow),
+    52.70vw 5.92vh var(--star-c), 52.70vw 5.92vh 3.5px var(--star-glow),
+    1.52vw 10.71vh var(--star-c), 1.52vw 10.71vh 3.5px var(--star-glow),
+    7.05vw 51.72vh var(--star-c), 7.05vw 51.72vh 3.5px var(--star-glow),
+    53.05vw 89.23vh var(--star-c), 53.05vw 89.23vh 3.5px var(--star-glow),
+    94.09vw 19.84vh var(--star-c), 94.09vw 19.84vh 3.5px var(--star-glow),
+    5.97vw 77.69vh var(--star-c), 5.97vw 77.69vh 3.5px var(--star-glow),
+    85.64vw 81.55vh var(--star-c), 85.64vw 81.55vh 3.5px var(--star-glow),
+    9.61vw 91.38vh var(--star-c), 9.61vw 91.38vh 3.5px var(--star-glow),
+    6.97vw 21.04vh var(--star-c), 6.97vw 21.04vh 3.5px var(--star-glow),
+    60.47vw 46.30vh var(--star-c), 60.47vw 46.30vh 3.5px var(--star-glow),
+    2.07vw 29.13vh var(--star-c), 2.07vw 29.13vh 3.5px var(--star-glow),
+    1.56vw 89.07vh var(--star-c), 1.56vw 89.07vh 3.5px var(--star-glow),
+    32.07vw 46.17vh var(--star-c), 32.07vw 46.17vh 3.5px var(--star-glow),
+    44.40vw 70.83vh var(--star-c), 44.40vw 70.83vh 3.5px var(--star-glow),
+    6.46vw 57.74vh var(--star-c), 6.46vw 57.74vh 3.5px var(--star-glow),
+    35.96vw 20.93vh var(--star-c), 35.96vw 20.93vh 3.5px var(--star-glow),
+    77.19vw 93.59vh var(--star-c), 77.19vw 93.59vh 3.5px var(--star-glow),
+    8.46vw 33.46vh var(--star-c), 8.46vw 33.46vh 3.5px var(--star-glow),
+    81.13vw 90.61vh var(--star-c), 81.13vw 90.61vh 3.5px var(--star-glow),
+    49.75vw 61.94vh var(--star-c), 49.75vw 61.94vh 3.5px var(--star-glow),
+    84.24vw 84.31vh var(--star-c), 84.24vw 84.31vh 3.5px var(--star-glow),
+    44.77vw 98.34vh var(--star-c), 44.77vw 98.34vh 3.5px var(--star-glow),
+    5.97vw 62.90vh var(--star-c), 5.97vw 62.90vh 3.5px var(--star-glow),
+    19.57vw 69.72vh var(--star-c), 19.57vw 69.72vh 3.5px var(--star-glow);
+  animation: sky-twinkle 4.6s ease-in-out infinite;
+}
+
+/* Medium stars */
+.sky-stars-b {
+  width: 1.4px;
+  height: 1.4px;
+  --star-c: rgba(219, 230, 255, 0.90);
+  --star-glow: rgba(190, 205, 255, 0.28);
+  box-shadow:
+    13.72vw 31.07vh var(--star-c), 13.72vw 31.07vh 4px var(--star-glow),
+    78.30vw 49.44vh var(--star-c), 78.30vw 49.44vh 4px var(--star-glow),
+    17.94vw 42.07vh var(--star-c), 17.94vw 42.07vh 4px var(--star-glow),
+    1.95vw 76.37vh var(--star-c), 1.95vw 76.37vh 4px var(--star-glow),
+    56.82vw 97.92vh var(--star-c), 56.82vw 97.92vh 4px var(--star-glow),
+    78.86vw 48.63vh var(--star-c), 78.86vw 48.63vh 4px var(--star-glow),
+    68.24vw 1.87vh var(--star-c), 68.24vw 1.87vh 4px var(--star-glow),
+    88.62vw 46.70vh var(--star-c), 88.62vw 46.70vh 4px var(--star-glow),
+    70.34vw 86.68vh var(--star-c), 70.34vw 86.68vh 4px var(--star-glow),
+    52.01vw 56.43vh var(--star-c), 52.01vw 56.43vh 4px var(--star-glow),
+    11.59vw 36.71vh var(--star-c), 11.59vw 36.71vh 4px var(--star-glow),
+    33.48vw 63.70vh var(--star-c), 33.48vw 63.70vh 4px var(--star-glow),
+    74.43vw 55.54vh var(--star-c), 74.43vw 55.54vh 4px var(--star-glow),
+    45.25vw 19.50vh var(--star-c), 45.25vw 19.50vh 4px var(--star-glow),
+    92.33vw 25.65vh var(--star-c), 92.33vw 25.65vh 4px var(--star-glow),
+    68.70vw 56.12vh var(--star-c), 68.70vw 56.12vh 4px var(--star-glow),
+    61.32vw 66.74vh var(--star-c), 61.32vw 66.74vh 4px var(--star-glow),
+    25.59vw 89.46vh var(--star-c), 25.59vw 89.46vh 4px var(--star-glow),
+    84.90vw 15.13vh var(--star-c), 84.90vw 15.13vh 4px var(--star-glow),
+    52.77vw 47.87vh var(--star-c), 52.77vw 47.87vh 4px var(--star-glow),
+    61.18vw 34.34vh var(--star-c), 61.18vw 34.34vh 4px var(--star-glow),
+    12.35vw 90.30vh var(--star-c), 12.35vw 90.30vh 4px var(--star-glow),
+    10.79vw 39.28vh var(--star-c), 10.79vw 39.28vh 4px var(--star-glow),
+    20.92vw 0.07vh var(--star-c), 20.92vw 0.07vh 4px var(--star-glow),
+    43.82vw 82.80vh var(--star-c), 43.82vw 82.80vh 4px var(--star-glow),
+    19.05vw 68.38vh var(--star-c), 19.05vw 68.38vh 4px var(--star-glow),
+    18.20vw 75.83vh var(--star-c), 18.20vw 75.83vh 4px var(--star-glow),
+    78.25vw 42.27vh var(--star-c), 78.25vw 42.27vh 4px var(--star-glow),
+    37.91vw 28.85vh var(--star-c), 37.91vw 28.85vh 4px var(--star-glow),
+    77.42vw 79.06vh var(--star-c), 77.42vw 79.06vh 4px var(--star-glow),
+    42.85vw 11.82vh var(--star-c), 42.85vw 11.82vh 4px var(--star-glow),
+    17.30vw 17.42vh var(--star-c), 17.30vw 17.42vh 4px var(--star-glow),
+    75.31vw 74.62vh var(--star-c), 75.31vw 74.62vh 4px var(--star-glow),
+    78.22vw 88.48vh var(--star-c), 78.22vw 88.48vh 4px var(--star-glow);
+  animation: sky-twinkle 6.4s ease-in-out -2.1s infinite;
+}
+
+/* Larger, brighter stars */
+.sky-stars-c {
+  width: 1.9px;
+  height: 1.9px;
+  --star-c: rgba(255, 255, 255, 0.95);
+  --star-glow: rgba(255, 236, 200, 0.32);
+  box-shadow:
+    97.23vw 19.44vh var(--star-c), 97.23vw 19.44vh 5px var(--star-glow),
+    17.61vw 7.90vh var(--star-c), 17.61vw 7.90vh 5px var(--star-glow),
+    8.75vw 31.12vh var(--star-c), 8.75vw 31.12vh 5px var(--star-glow),
+    45.34vw 95.22vh var(--star-c), 45.34vw 95.22vh 5px var(--star-glow),
+    57.47vw 43.05vh var(--star-c), 57.47vw 43.05vh 5px var(--star-glow),
+    3.09vw 66.86vh var(--star-c), 3.09vw 66.86vh 5px var(--star-glow),
+    51.78vw 29.54vh var(--star-c), 51.78vw 29.54vh 5px var(--star-glow),
+    90.72vw 3.39vh var(--star-c), 90.72vw 3.39vh 5px var(--star-glow),
+    33.31vw 27.21vh var(--star-c), 33.31vw 27.21vh 5px var(--star-glow),
+    65.72vw 66.12vh var(--star-c), 65.72vw 66.12vh 5px var(--star-glow),
+    27.00vw 42.44vh var(--star-c), 27.00vw 42.44vh 5px var(--star-glow),
+    8.03vw 44.42vh var(--star-c), 8.03vw 44.42vh 5px var(--star-glow),
+    18.59vw 44.86vh var(--star-c), 18.59vw 44.86vh 5px var(--star-glow),
+    25.32vw 60.94vh var(--star-c), 25.32vw 60.94vh 5px var(--star-glow),
+    29.05vw 67.37vh var(--star-c), 29.05vw 67.37vh 5px var(--star-glow),
+    28.06vw 14.95vh var(--star-c), 28.06vw 14.95vh 5px var(--star-glow),
+    18.58vw 39.46vh var(--star-c), 18.58vw 39.46vh 5px var(--star-glow),
+    32.83vw 88.09vh var(--star-c), 32.83vw 88.09vh 5px var(--star-glow),
+    94.25vw 10.09vh var(--star-c), 94.25vw 10.09vh 5px var(--star-glow),
+    3.24vw 22.99vh var(--star-c), 3.24vw 22.99vh 5px var(--star-glow),
+    83.47vw 16.98vh var(--star-c), 83.47vw 16.98vh 5px var(--star-glow),
+    57.11vw 53.43vh var(--star-c), 57.11vw 53.43vh 5px var(--star-glow),
+    79.65vw 15.36vh var(--star-c), 79.65vw 15.36vh 5px var(--star-glow),
+    46.12vw 46.04vh var(--star-c), 46.12vw 46.04vh 5px var(--star-glow),
+    29.35vw 46.33vh var(--star-c), 29.35vw 46.33vh 5px var(--star-glow),
+    55.62vw 33.80vh var(--star-c), 55.62vw 33.80vh 5px var(--star-glow);
+  animation: sky-twinkle 8.2s ease-in-out -5.3s infinite;
+}
+
+/* Dense small stars — seed 5150 (theme x2) */
+.sky-stars-dense-a {
+  width: 1px; height: 1px;
+  --star-c: rgba(255, 255, 255, 0.78);
+  --star-glow: rgba(174, 196, 255, 0.26);
+  box-shadow:
+    37.37vw 60.27vh var(--star-c), 37.37vw 60.27vh 3px var(--star-glow),
+    17.01vw 90.58vh var(--star-c), 17.01vw 90.58vh 3px var(--star-glow),
+    50.31vw 65.22vh var(--star-c), 50.31vw 65.22vh 3px var(--star-glow),
+    95.63vw 6.21vh var(--star-c), 95.63vw 6.21vh 3px var(--star-glow),
+    28.99vw 90.81vh var(--star-c), 28.99vw 90.81vh 3px var(--star-glow),
+    62.43vw 96.34vh var(--star-c), 62.43vw 96.34vh 3px var(--star-glow),
+    75.50vw 69.16vh var(--star-c), 75.50vw 69.16vh 3px var(--star-glow),
+    81.01vw 82.63vh var(--star-c), 81.01vw 82.63vh 3px var(--star-glow),
+    22.73vw 37.08vh var(--star-c), 22.73vw 37.08vh 3px var(--star-glow),
+    44.26vw 33.91vh var(--star-c), 44.26vw 33.91vh 3px var(--star-glow),
+    55.04vw 58.89vh var(--star-c), 55.04vw 58.89vh 3px var(--star-glow),
+    76.55vw 19.46vh var(--star-c), 76.55vw 19.46vh 3px var(--star-glow),
+    50.39vw 97.65vh var(--star-c), 50.39vw 97.65vh 3px var(--star-glow),
+    92.46vw 51.10vh var(--star-c), 92.46vw 51.10vh 3px var(--star-glow),
+    81.65vw 33.37vh var(--star-c), 81.65vw 33.37vh 3px var(--star-glow),
+    38.98vw 55.78vh var(--star-c), 38.98vw 55.78vh 3px var(--star-glow),
+    82.32vw 53.94vh var(--star-c), 82.32vw 53.94vh 3px var(--star-glow),
+    88.27vw 9.04vh var(--star-c), 88.27vw 9.04vh 3px var(--star-glow),
+    27.27vw 79.42vh var(--star-c), 27.27vw 79.42vh 3px var(--star-glow),
+    99.96vw 11.02vh var(--star-c), 99.96vw 11.02vh 3px var(--star-glow),
+    2.75vw 44.32vh var(--star-c), 2.75vw 44.32vh 3px var(--star-glow),
+    88.61vw 47.00vh var(--star-c), 88.61vw 47.00vh 3px var(--star-glow),
+    19.68vw 6.23vh var(--star-c), 19.68vw 6.23vh 3px var(--star-glow),
+    47.14vw 21.09vh var(--star-c), 47.14vw 21.09vh 3px var(--star-glow),
+    31.45vw 21.88vh var(--star-c), 31.45vw 21.88vh 3px var(--star-glow),
+    59.98vw 24.80vh var(--star-c), 59.98vw 24.80vh 3px var(--star-glow),
+    70.04vw 29.20vh var(--star-c), 70.04vw 29.20vh 3px var(--star-glow),
+    57.76vw 94.50vh var(--star-c), 57.76vw 94.50vh 3px var(--star-glow),
+    90.84vw 23.40vh var(--star-c), 90.84vw 23.40vh 3px var(--star-glow),
+    27.24vw 38.00vh var(--star-c), 27.24vw 38.00vh 3px var(--star-glow),
+    44.91vw 48.87vh var(--star-c), 44.91vw 48.87vh 3px var(--star-glow),
+    72.79vw 55.58vh var(--star-c), 72.79vw 55.58vh 3px var(--star-glow),
+    47.54vw 75.22vh var(--star-c), 47.54vw 75.22vh 3px var(--star-glow),
+    15.79vw 79.87vh var(--star-c), 15.79vw 79.87vh 3px var(--star-glow),
+    55.09vw 52.77vh var(--star-c), 55.09vw 52.77vh 3px var(--star-glow),
+    5.57vw 2.74vh var(--star-c), 5.57vw 2.74vh 3px var(--star-glow),
+    29.61vw 3.63vh var(--star-c), 29.61vw 3.63vh 3px var(--star-glow),
+    76.82vw 41.55vh var(--star-c), 76.82vw 41.55vh 3px var(--star-glow),
+    94.06vw 63.92vh var(--star-c), 94.06vw 63.92vh 3px var(--star-glow),
+    82.85vw 48.95vh var(--star-c), 82.85vw 48.95vh 3px var(--star-glow),
+    92.19vw 2.57vh var(--star-c), 92.19vw 2.57vh 3px var(--star-glow),
+    1.92vw 95.89vh var(--star-c), 1.92vw 95.89vh 3px var(--star-glow),
+    80.49vw 69.87vh var(--star-c), 80.49vw 69.87vh 3px var(--star-glow),
+    10.84vw 6.15vh var(--star-c), 10.84vw 6.15vh 3px var(--star-glow);
+  animation: sky-twinkle 5.2s ease-in-out -1.3s infinite;
+}
+
+/* Dense medium stars — seed 8675309 (theme x2) */
+.sky-stars-dense-b {
+  width: 1.4px; height: 1.4px;
+  --star-c: rgba(219, 230, 255, 0.82);
+  --star-glow: rgba(190, 205, 255, 0.24);
+  box-shadow:
+    62.27vw 51.09vh var(--star-c), 62.27vw 51.09vh 3.5px var(--star-glow),
+    79.23vw 11.46vh var(--star-c), 79.23vw 11.46vh 3.5px var(--star-glow),
+    69.70vw 92.10vh var(--star-c), 69.70vw 92.10vh 3.5px var(--star-glow),
+    96.89vw 53.39vh var(--star-c), 96.89vw 53.39vh 3.5px var(--star-glow),
+    90.24vw 78.10vh var(--star-c), 90.24vw 78.10vh 3.5px var(--star-glow),
+    38.11vw 15.72vh var(--star-c), 38.11vw 15.72vh 3.5px var(--star-glow),
+    90.71vw 29.76vh var(--star-c), 90.71vw 29.76vh 3.5px var(--star-glow),
+    39.28vw 22.41vh var(--star-c), 39.28vw 22.41vh 3.5px var(--star-glow),
+    86.89vw 19.90vh var(--star-c), 86.89vw 19.90vh 3.5px var(--star-glow),
+    12.91vw 10.82vh var(--star-c), 12.91vw 10.82vh 3.5px var(--star-glow),
+    33.09vw 92.35vh var(--star-c), 33.09vw 92.35vh 3.5px var(--star-glow),
+    4.34vw 76.07vh var(--star-c), 4.34vw 76.07vh 3.5px var(--star-glow),
+    66.61vw 16.40vh var(--star-c), 66.61vw 16.40vh 3.5px var(--star-glow),
+    23.08vw 23.55vh var(--star-c), 23.08vw 23.55vh 3.5px var(--star-glow),
+    9.25vw 62.97vh var(--star-c), 9.25vw 62.97vh 3.5px var(--star-glow),
+    40.50vw 93.74vh var(--star-c), 40.50vw 93.74vh 3.5px var(--star-glow),
+    39.85vw 3.66vh var(--star-c), 39.85vw 3.66vh 3.5px var(--star-glow),
+    90.03vw 43.03vh var(--star-c), 90.03vw 43.03vh 3.5px var(--star-glow),
+    56.97vw 61.37vh var(--star-c), 56.97vw 61.37vh 3.5px var(--star-glow),
+    48.41vw 51.36vh var(--star-c), 48.41vw 51.36vh 3.5px var(--star-glow),
+    60.64vw 77.33vh var(--star-c), 60.64vw 77.33vh 3.5px var(--star-glow),
+    97.29vw 0.55vh var(--star-c), 97.29vw 0.55vh 3.5px var(--star-glow),
+    75.19vw 93.86vh var(--star-c), 75.19vw 93.86vh 3.5px var(--star-glow),
+    98.86vw 26.58vh var(--star-c), 98.86vw 26.58vh 3.5px var(--star-glow),
+    43.56vw 11.78vh var(--star-c), 43.56vw 11.78vh 3.5px var(--star-glow),
+    74.65vw 29.37vh var(--star-c), 74.65vw 29.37vh 3.5px var(--star-glow),
+    53.90vw 95.04vh var(--star-c), 53.90vw 95.04vh 3.5px var(--star-glow),
+    58.58vw 22.52vh var(--star-c), 58.58vw 22.52vh 3.5px var(--star-glow),
+    51.85vw 69.25vh var(--star-c), 51.85vw 69.25vh 3.5px var(--star-glow),
+    7.53vw 98.74vh var(--star-c), 7.53vw 98.74vh 3.5px var(--star-glow),
+    68.26vw 25.30vh var(--star-c), 68.26vw 25.30vh 3.5px var(--star-glow),
+    29.53vw 36.64vh var(--star-c), 29.53vw 36.64vh 3.5px var(--star-glow),
+    77.14vw 53.70vh var(--star-c), 77.14vw 53.70vh 3.5px var(--star-glow),
+    77.44vw 21.75vh var(--star-c), 77.44vw 21.75vh 3.5px var(--star-glow);
+  animation: sky-twinkle 7.1s ease-in-out -3.7s infinite;
+}
+
+/* Dense bright stars — seed 13371337 (theme x2) */
+.sky-stars-dense-c {
+  width: 1.9px; height: 1.9px;
+  --star-c: rgba(255, 255, 255, 0.88);
+  --star-glow: rgba(255, 236, 200, 0.28);
+  box-shadow:
+    42.41vw 60.49vh var(--star-c), 42.41vw 60.49vh 4.5px var(--star-glow),
+    85.36vw 61.86vh var(--star-c), 85.36vw 61.86vh 4.5px var(--star-glow),
+    61.59vw 92.70vh var(--star-c), 61.59vw 92.70vh 4.5px var(--star-glow),
+    81.41vw 30.27vh var(--star-c), 81.41vw 30.27vh 4.5px var(--star-glow),
+    10.55vw 9.35vh var(--star-c), 10.55vw 9.35vh 4.5px var(--star-glow),
+    13.23vw 30.08vh var(--star-c), 13.23vw 30.08vh 4.5px var(--star-glow),
+    50.68vw 63.20vh var(--star-c), 50.68vw 63.20vh 4.5px var(--star-glow),
+    0.70vw 23.28vh var(--star-c), 0.70vw 23.28vh 4.5px var(--star-glow),
+    69.83vw 0.46vh var(--star-c), 69.83vw 0.46vh 4.5px var(--star-glow),
+    56.39vw 81.65vh var(--star-c), 56.39vw 81.65vh 4.5px var(--star-glow),
+    80.91vw 73.44vh var(--star-c), 80.91vw 73.44vh 4.5px var(--star-glow),
+    23.93vw 71.22vh var(--star-c), 23.93vw 71.22vh 4.5px var(--star-glow),
+    71.99vw 71.63vh var(--star-c), 71.99vw 71.63vh 4.5px var(--star-glow),
+    13.40vw 57.67vh var(--star-c), 13.40vw 57.67vh 4.5px var(--star-glow),
+    89.44vw 79.90vh var(--star-c), 89.44vw 79.90vh 4.5px var(--star-glow),
+    62.62vw 7.32vh var(--star-c), 62.62vw 7.32vh 4.5px var(--star-glow),
+    24.83vw 53.03vh var(--star-c), 24.83vw 53.03vh 4.5px var(--star-glow),
+    75.57vw 35.98vh var(--star-c), 75.57vw 35.98vh 4.5px var(--star-glow),
+    82.05vw 42.91vh var(--star-c), 82.05vw 42.91vh 4.5px var(--star-glow),
+    98.71vw 12.73vh var(--star-c), 98.71vw 12.73vh 4.5px var(--star-glow),
+    82.75vw 97.73vh var(--star-c), 82.75vw 97.73vh 4.5px var(--star-glow),
+    19.20vw 7.86vh var(--star-c), 19.20vw 7.86vh 4.5px var(--star-glow),
+    33.04vw 33.87vh var(--star-c), 33.04vw 33.87vh 4.5px var(--star-glow),
+    41.95vw 6.71vh var(--star-c), 41.95vw 6.71vh 4.5px var(--star-glow),
+    55.08vw 21.49vh var(--star-c), 55.08vw 21.49vh 4.5px var(--star-glow),
+    8.13vw 46.12vh var(--star-c), 8.13vw 46.12vh 4.5px var(--star-glow);
+  animation: sky-twinkle 9.4s ease-in-out -6.1s infinite;
+}
+
+/* Extra small stars — seed 424242 (light theme only, x4 total) */
+.sky-stars-extra-y {
+  width: 1px; height: 1px;
+  --star-c: rgba(255, 255, 255, 0.75);
+  --star-glow: rgba(174, 196, 255, 0.25);
+  box-shadow:
+    12.87vw 23.63vh var(--star-c), 12.87vw 23.63vh 3px var(--star-glow),
+    18.38vw 64.38vh var(--star-c), 18.38vw 64.38vh 3px var(--star-glow),
+    34.24vw 60.41vh var(--star-c), 34.24vw 60.41vh 3px var(--star-glow),
+    2.05vw 51.78vh var(--star-c), 2.05vw 51.78vh 3px var(--star-glow),
+    96.62vw 96.94vh var(--star-c), 96.62vw 96.94vh 3px var(--star-glow),
+    60.86vw 71.24vh var(--star-c), 60.86vw 71.24vh 3px var(--star-glow),
+    10.15vw 74.92vh var(--star-c), 10.15vw 74.92vh 3px var(--star-glow),
+    19.82vw 4.36vh var(--star-c), 19.82vw 4.36vh 3px var(--star-glow),
+    26.50vw 67.74vh var(--star-c), 26.50vw 67.74vh 3px var(--star-glow),
+    37.99vw 51.03vh var(--star-c), 37.99vw 51.03vh 3px var(--star-glow),
+    22.32vw 85.97vh var(--star-c), 22.32vw 85.97vh 3px var(--star-glow),
+    10.53vw 31.02vh var(--star-c), 10.53vw 31.02vh 3px var(--star-glow),
+    44.63vw 44.74vh var(--star-c), 44.63vw 44.74vh 3px var(--star-glow),
+    43.56vw 4.20vh var(--star-c), 43.56vw 4.20vh 3px var(--star-glow),
+    46.39vw 73.56vh var(--star-c), 46.39vw 73.56vh 3px var(--star-glow),
+    29.83vw 97.20vh var(--star-c), 29.83vw 97.20vh 3px var(--star-glow),
+    70.49vw 22.35vh var(--star-c), 70.49vw 22.35vh 3px var(--star-glow),
+    40.74vw 25.71vh var(--star-c), 40.74vw 25.71vh 3px var(--star-glow),
+    28.87vw 12.23vh var(--star-c), 28.87vw 12.23vh 3px var(--star-glow),
+    3.17vw 89.45vh var(--star-c), 3.17vw 89.45vh 3px var(--star-glow),
+    99.87vw 71.07vh var(--star-c), 99.87vw 71.07vh 3px var(--star-glow),
+    6.49vw 8.78vh var(--star-c), 6.49vw 8.78vh 3px var(--star-glow),
+    53.39vw 85.44vh var(--star-c), 53.39vw 85.44vh 3px var(--star-glow),
+    81.55vw 59.66vh var(--star-c), 81.55vw 59.66vh 3px var(--star-glow),
+    86.09vw 38.33vh var(--star-c), 86.09vw 38.33vh 3px var(--star-glow),
+    33.83vw 90.77vh var(--star-c), 33.83vw 90.77vh 3px var(--star-glow),
+    93.75vw 88.66vh var(--star-c), 93.75vw 88.66vh 3px var(--star-glow),
+    29.66vw 81.01vh var(--star-c), 29.66vw 81.01vh 3px var(--star-glow),
+    59.80vw 89.15vh var(--star-c), 59.80vw 89.15vh 3px var(--star-glow),
+    76.46vw 59.43vh var(--star-c), 76.46vw 59.43vh 3px var(--star-glow),
+    76.73vw 52.56vh var(--star-c), 76.73vw 52.56vh 3px var(--star-glow),
+    82.83vw 34.20vh var(--star-c), 82.83vw 34.20vh 3px var(--star-glow),
+    31.82vw 0.83vh var(--star-c), 31.82vw 0.83vh 3px var(--star-glow),
+    67.82vw 52.11vh var(--star-c), 67.82vw 52.11vh 3px var(--star-glow),
+    27.42vw 34.70vh var(--star-c), 27.42vw 34.70vh 3px var(--star-glow),
+    86.63vw 91.13vh var(--star-c), 86.63vw 91.13vh 3px var(--star-glow),
+    20.10vw 91.12vh var(--star-c), 20.10vw 91.12vh 3px var(--star-glow),
+    10.74vw 38.25vh var(--star-c), 10.74vw 38.25vh 3px var(--star-glow),
+    49.17vw 13.14vh var(--star-c), 49.17vw 13.14vh 3px var(--star-glow),
+    16.76vw 34.64vh var(--star-c), 16.76vw 34.64vh 3px var(--star-glow),
+    93.80vw 10.75vh var(--star-c), 93.80vw 10.75vh 3px var(--star-glow),
+    63.72vw 99.08vh var(--star-c), 63.72vw 99.08vh 3px var(--star-glow),
+    65.04vw 29.35vh var(--star-c), 65.04vw 29.35vh 3px var(--star-glow),
+    8.22vw 5.17vh var(--star-c), 8.22vw 5.17vh 3px var(--star-glow),
+    24.18vw 77.56vh var(--star-c), 24.18vw 77.56vh 3px var(--star-glow),
+    61.61vw 55.79vh var(--star-c), 61.61vw 55.79vh 3px var(--star-glow),
+    16.68vw 52.99vh var(--star-c), 16.68vw 52.99vh 3px var(--star-glow),
+    16.98vw 16.83vh var(--star-c), 16.98vw 16.83vh 3px var(--star-glow),
+    78.21vw 22.36vh var(--star-c), 78.21vw 22.36vh 3px var(--star-glow),
+    78.11vw 80.44vh var(--star-c), 78.11vw 80.44vh 3px var(--star-glow),
+    25.27vw 94.61vh var(--star-c), 25.27vw 94.61vh 3px var(--star-glow),
+    61.23vw 16.61vh var(--star-c), 61.23vw 16.61vh 3px var(--star-glow),
+    90.28vw 18.79vh var(--star-c), 90.28vw 18.79vh 3px var(--star-glow),
+    46.26vw 30.53vh var(--star-c), 46.26vw 30.53vh 3px var(--star-glow),
+    64.15vw 74.18vh var(--star-c), 64.15vw 74.18vh 3px var(--star-glow),
+    46.99vw 63.85vh var(--star-c), 46.99vw 63.85vh 3px var(--star-glow),
+    21.42vw 46.23vh var(--star-c), 21.42vw 46.23vh 3px var(--star-glow),
+    41.32vw 18.83vh var(--star-c), 41.32vw 18.83vh 3px var(--star-glow),
+    47.91vw 34.33vh var(--star-c), 47.91vw 34.33vh 3px var(--star-glow),
+    71.35vw 28.83vh var(--star-c), 71.35vw 28.83vh 3px var(--star-glow),
+    84.76vw 44.19vh var(--star-c), 84.76vw 44.19vh 3px var(--star-glow),
+    64.43vw 1.15vh var(--star-c), 64.43vw 1.15vh 3px var(--star-glow),
+    25.06vw 42.56vh var(--star-c), 25.06vw 42.56vh 3px var(--star-glow),
+    2.99vw 65.18vh var(--star-c), 2.99vw 65.18vh 3px var(--star-glow),
+    28.74vw 45.98vh var(--star-c), 28.74vw 45.98vh 3px var(--star-glow),
+    81.43vw 20.36vh var(--star-c), 81.43vw 20.36vh 3px var(--star-glow),
+    5.71vw 92.97vh var(--star-c), 5.71vw 92.97vh 3px var(--star-glow),
+    48.02vw 17.30vh var(--star-c), 48.02vw 17.30vh 3px var(--star-glow),
+    25.42vw 7.66vh var(--star-c), 25.42vw 7.66vh 3px var(--star-glow),
+    15.33vw 4.47vh var(--star-c), 15.33vw 4.47vh 3px var(--star-glow),
+    23.50vw 32.20vh var(--star-c), 23.50vw 32.20vh 3px var(--star-glow),
+    38.03vw 60.44vh var(--star-c), 38.03vw 60.44vh 3px var(--star-glow),
+    6.84vw 55.88vh var(--star-c), 6.84vw 55.88vh 3px var(--star-glow),
+    46.22vw 85.40vh var(--star-c), 46.22vw 85.40vh 3px var(--star-glow),
+    43.14vw 76.65vh var(--star-c), 43.14vw 76.65vh 3px var(--star-glow),
+    28.35vw 57.59vh var(--star-c), 28.35vw 57.59vh 3px var(--star-glow),
+    70.59vw 58.51vh var(--star-c), 70.59vw 58.51vh 3px var(--star-glow),
+    13.14vw 68.00vh var(--star-c), 13.14vw 68.00vh 3px var(--star-glow),
+    94.72vw 74.89vh var(--star-c), 94.72vw 74.89vh 3px var(--star-glow),
+    1.23vw 20.09vh var(--star-c), 1.23vw 20.09vh 3px var(--star-glow),
+    36.13vw 73.63vh var(--star-c), 36.13vw 73.63vh 3px var(--star-glow),
+    79.07vw 5.97vh var(--star-c), 79.07vw 5.97vh 3px var(--star-glow),
+    99.46vw 82.84vh var(--star-c), 99.46vw 82.84vh 3px var(--star-glow),
+    95.56vw 35.68vh var(--star-c), 95.56vw 35.68vh 3px var(--star-glow),
+    14.17vw 96.53vh var(--star-c), 14.17vw 96.53vh 3px var(--star-glow),
+    97.53vw 64.99vh var(--star-c), 97.53vw 64.99vh 3px var(--star-glow),
+    54.49vw 53.21vh var(--star-c), 54.49vw 53.21vh 3px var(--star-glow),
+    11.11vw 7.85vh var(--star-c), 11.11vw 7.85vh 3px var(--star-glow),
+    92.38vw 61.55vh var(--star-c), 92.38vw 61.55vh 3px var(--star-glow),
+    74.32vw 6.79vh var(--star-c), 74.32vw 6.79vh 3px var(--star-glow),
+    90.64vw 50.01vh var(--star-c), 90.64vw 50.01vh 3px var(--star-glow),
+    39.36vw 95.41vh var(--star-c), 39.36vw 95.41vh 3px var(--star-glow),
+    37.08vw 32.94vh var(--star-c), 37.08vw 32.94vh 3px var(--star-glow),
+    45.72vw 81.32vh var(--star-c), 45.72vw 81.32vh 3px var(--star-glow),
+    17.32vw 68.22vh var(--star-c), 17.32vw 68.22vh 3px var(--star-glow),
+    10.27vw 49.40vh var(--star-c), 10.27vw 49.40vh 3px var(--star-glow),
+    72.45vw 40.85vh var(--star-c), 72.45vw 40.85vh 3px var(--star-glow),
+    90.35vw 33.09vh var(--star-c), 90.35vw 33.09vh 3px var(--star-glow),
+    74.94vw 68.02vh var(--star-c), 74.94vw 68.02vh 3px var(--star-glow),
+    66.58vw 46.67vh var(--star-c), 66.58vw 46.67vh 3px var(--star-glow),
+    75.61vw 96.96vh var(--star-c), 75.61vw 96.96vh 3px var(--star-glow),
+    75.48vw 11.59vh var(--star-c), 75.48vw 11.59vh 3px var(--star-glow),
+    82.83vw 16.08vh var(--star-c), 82.83vw 16.08vh 3px var(--star-glow),
+    17.68vw 12.96vh var(--star-c), 17.68vw 12.96vh 3px var(--star-glow);
+  animation: sky-twinkle 4.9s ease-in-out -0.8s infinite;
+}
+
+/* Extra medium stars — seed 902107 (light theme only, x4 total) */
+.sky-stars-extra-z {
+  width: 1.4px; height: 1.4px;
+  --star-c: rgba(255, 255, 255, 0.80);
+  --star-glow: rgba(255, 236, 200, 0.25);
+  box-shadow:
+    81.53vw 56.90vh var(--star-c), 81.53vw 56.90vh 3.5px var(--star-glow),
+    38.10vw 41.30vh var(--star-c), 38.10vw 41.30vh 3.5px var(--star-glow),
+    39.13vw 11.32vh var(--star-c), 39.13vw 11.32vh 3.5px var(--star-glow),
+    62.80vw 43.21vh var(--star-c), 62.80vw 43.21vh 3.5px var(--star-glow),
+    95.91vw 51.27vh var(--star-c), 95.91vw 51.27vh 3.5px var(--star-glow),
+    2.20vw 0.78vh var(--star-c), 2.20vw 0.78vh 3.5px var(--star-glow),
+    90.90vw 88.79vh var(--star-c), 90.90vw 88.79vh 3.5px var(--star-glow),
+    26.31vw 94.87vh var(--star-c), 26.31vw 94.87vh 3.5px var(--star-glow),
+    86.35vw 83.40vh var(--star-c), 86.35vw 83.40vh 3.5px var(--star-glow),
+    23.73vw 62.80vh var(--star-c), 23.73vw 62.80vh 3.5px var(--star-glow),
+    49.29vw 58.88vh var(--star-c), 49.29vw 58.88vh 3.5px var(--star-glow),
+    40.54vw 98.31vh var(--star-c), 40.54vw 98.31vh 3.5px var(--star-glow),
+    68.28vw 37.60vh var(--star-c), 68.28vw 37.60vh 3.5px var(--star-glow),
+    96.47vw 84.44vh var(--star-c), 96.47vw 84.44vh 3.5px var(--star-glow),
+    58.19vw 83.24vh var(--star-c), 58.19vw 83.24vh 3.5px var(--star-glow),
+    0.85vw 11.97vh var(--star-c), 0.85vw 11.97vh 3.5px var(--star-glow),
+    37.17vw 6.13vh var(--star-c), 37.17vw 6.13vh 3.5px var(--star-glow),
+    18.65vw 40.09vh var(--star-c), 18.65vw 40.09vh 3.5px var(--star-glow),
+    7.19vw 60.02vh var(--star-c), 7.19vw 60.02vh 3.5px var(--star-glow),
+    66.94vw 92.89vh var(--star-c), 66.94vw 92.89vh 3.5px var(--star-glow),
+    45.60vw 28.76vh var(--star-c), 45.60vw 28.76vh 3.5px var(--star-glow),
+    30.87vw 39.53vh var(--star-c), 30.87vw 39.53vh 3.5px var(--star-glow),
+    23.01vw 1.28vh var(--star-c), 23.01vw 1.28vh 3.5px var(--star-glow),
+    69.87vw 30.91vh var(--star-c), 69.87vw 30.91vh 3.5px var(--star-glow),
+    62.62vw 96.97vh var(--star-c), 62.62vw 96.97vh 3.5px var(--star-glow),
+    33.56vw 70.91vh var(--star-c), 33.56vw 70.91vh 3.5px var(--star-glow),
+    77.22vw 65.14vh var(--star-c), 77.22vw 65.14vh 3.5px var(--star-glow),
+    29.21vw 53.08vh var(--star-c), 29.21vw 53.08vh 3.5px var(--star-glow),
+    84.06vw 91.56vh var(--star-c), 84.06vw 91.56vh 3.5px var(--star-glow),
+    24.20vw 12.61vh var(--star-c), 24.20vw 12.61vh 3.5px var(--star-glow),
+    15.99vw 74.05vh var(--star-c), 15.99vw 74.05vh 3.5px var(--star-glow),
+    6.43vw 2.07vh var(--star-c), 6.43vw 2.07vh 3.5px var(--star-glow),
+    7.58vw 13.47vh var(--star-c), 7.58vw 13.47vh 3.5px var(--star-glow),
+    82.80vw 17.22vh var(--star-c), 82.80vw 17.22vh 3.5px var(--star-glow),
+    81.86vw 12.43vh var(--star-c), 81.86vw 12.43vh 3.5px var(--star-glow),
+    13.92vw 41.94vh var(--star-c), 13.92vw 41.94vh 3.5px var(--star-glow),
+    48.48vw 12.05vh var(--star-c), 48.48vw 12.05vh 3.5px var(--star-glow),
+    73.72vw 98.34vh var(--star-c), 73.72vw 98.34vh 3.5px var(--star-glow),
+    58.73vw 54.38vh var(--star-c), 58.73vw 54.38vh 3.5px var(--star-glow),
+    63.22vw 19.38vh var(--star-c), 63.22vw 19.38vh 3.5px var(--star-glow),
+    14.94vw 96.68vh var(--star-c), 14.94vw 96.68vh 3.5px var(--star-glow),
+    73.08vw 38.35vh var(--star-c), 73.08vw 38.35vh 3.5px var(--star-glow),
+    2.11vw 80.74vh var(--star-c), 2.11vw 80.74vh 3.5px var(--star-glow),
+    41.79vw 54.47vh var(--star-c), 41.79vw 54.47vh 3.5px var(--star-glow),
+    28.67vw 60.33vh var(--star-c), 28.67vw 60.33vh 3.5px var(--star-glow),
+    49.17vw 38.03vh var(--star-c), 49.17vw 38.03vh 3.5px var(--star-glow),
+    38.69vw 75.83vh var(--star-c), 38.69vw 75.83vh 3.5px var(--star-glow),
+    70.85vw 1.19vh var(--star-c), 70.85vw 1.19vh 3.5px var(--star-glow),
+    94.69vw 68.12vh var(--star-c), 94.69vw 68.12vh 3.5px var(--star-glow),
+    35.07vw 64.85vh var(--star-c), 35.07vw 64.85vh 3.5px var(--star-glow),
+    93.68vw 73.27vh var(--star-c), 93.68vw 73.27vh 3.5px var(--star-glow),
+    98.30vw 71.26vh var(--star-c), 98.30vw 71.26vh 3.5px var(--star-glow),
+    32.48vw 21.17vh var(--star-c), 32.48vw 21.17vh 3.5px var(--star-glow),
+    56.15vw 21.58vh var(--star-c), 56.15vw 21.58vh 3.5px var(--star-glow),
+    80.88vw 77.58vh var(--star-c), 80.88vw 77.58vh 3.5px var(--star-glow),
+    41.29vw 18.69vh var(--star-c), 41.29vw 18.69vh 3.5px var(--star-glow),
+    59.55vw 60.29vh var(--star-c), 59.55vw 60.29vh 3.5px var(--star-glow),
+    91.22vw 14.78vh var(--star-c), 91.22vw 14.78vh 3.5px var(--star-glow),
+    68.47vw 99.71vh var(--star-c), 68.47vw 99.71vh 3.5px var(--star-glow),
+    22.94vw 30.20vh var(--star-c), 22.94vw 30.20vh 3.5px var(--star-glow),
+    1.46vw 96.55vh var(--star-c), 1.46vw 96.55vh 3.5px var(--star-glow),
+    56.89vw 2.52vh var(--star-c), 56.89vw 2.52vh 3.5px var(--star-glow),
+    61.96vw 70.60vh var(--star-c), 61.96vw 70.60vh 3.5px var(--star-glow),
+    1.27vw 56.36vh var(--star-c), 1.27vw 56.36vh 3.5px var(--star-glow),
+    43.93vw 74.52vh var(--star-c), 43.93vw 74.52vh 3.5px var(--star-glow),
+    88.60vw 78.50vh var(--star-c), 88.60vw 78.50vh 3.5px var(--star-glow),
+    92.66vw 23.25vh var(--star-c), 92.66vw 23.25vh 3.5px var(--star-glow),
+    76.26vw 16.96vh var(--star-c), 76.26vw 16.96vh 3.5px var(--star-glow),
+    46.28vw 32.61vh var(--star-c), 46.28vw 32.61vh 3.5px var(--star-glow),
+    44.06vw 3.05vh var(--star-c), 44.06vw 3.05vh 3.5px var(--star-glow),
+    12.37vw 25.86vh var(--star-c), 12.37vw 25.86vh 3.5px var(--star-glow),
+    59.85vw 7.81vh var(--star-c), 59.85vw 7.81vh 3.5px var(--star-glow),
+    7.77vw 37.49vh var(--star-c), 7.77vw 37.49vh 3.5px var(--star-glow),
+    85.31vw 7.45vh var(--star-c), 85.31vw 7.45vh 3.5px var(--star-glow),
+    12.75vw 16.42vh var(--star-c), 12.75vw 16.42vh 3.5px var(--star-glow),
+    88.61vw 70.73vh var(--star-c), 88.61vw 70.73vh 3.5px var(--star-glow),
+    91.83vw 54.80vh var(--star-c), 91.83vw 54.80vh 3.5px var(--star-glow),
+    32.42vw 78.15vh var(--star-c), 32.42vw 78.15vh 3.5px var(--star-glow),
+    4.85vw 88.90vh var(--star-c), 4.85vw 88.90vh 3.5px var(--star-glow),
+    42.09vw 67.21vh var(--star-c), 42.09vw 67.21vh 3.5px var(--star-glow),
+    88.55vw 3.26vh var(--star-c), 88.55vw 3.26vh 3.5px var(--star-glow),
+    5.48vw 29.72vh var(--star-c), 5.48vw 29.72vh 3.5px var(--star-glow),
+    36.87vw 58.29vh var(--star-c), 36.87vw 58.29vh 3.5px var(--star-glow),
+    96.70vw 19.60vh var(--star-c), 96.70vw 19.60vh 3.5px var(--star-glow),
+    36.24vw 35.41vh var(--star-c), 36.24vw 35.41vh 3.5px var(--star-glow),
+    25.81vw 70.14vh var(--star-c), 25.81vw 70.14vh 3.5px var(--star-glow),
+    91.09vw 29.63vh var(--star-c), 91.09vw 29.63vh 3.5px var(--star-glow),
+    12.71vw 89.35vh var(--star-c), 12.71vw 89.35vh 3.5px var(--star-glow),
+    26.50vw 7.99vh var(--star-c), 26.50vw 7.99vh 3.5px var(--star-glow),
+    22.54vw 85.81vh var(--star-c), 22.54vw 85.81vh 3.5px var(--star-glow),
+    21.50vw 71.55vh var(--star-c), 21.50vw 71.55vh 3.5px var(--star-glow),
+    68.53vw 66.18vh var(--star-c), 68.53vw 66.18vh 3.5px var(--star-glow),
+    41.32vw 47.39vh var(--star-c), 41.32vw 47.39vh 3.5px var(--star-glow),
+    58.66vw 92.25vh var(--star-c), 58.66vw 92.25vh 3.5px var(--star-glow),
+    32.00vw 25.34vh var(--star-c), 32.00vw 25.34vh 3.5px var(--star-glow),
+    82.31vw 44.29vh var(--star-c), 82.31vw 44.29vh 3.5px var(--star-glow),
+    17.66vw 2.46vh var(--star-c), 17.66vw 2.46vh 3.5px var(--star-glow),
+    15.47vw 34.98vh var(--star-c), 15.47vw 34.98vh 3.5px var(--star-glow),
+    71.32vw 21.37vh var(--star-c), 71.32vw 21.37vh 3.5px var(--star-glow),
+    1.39vw 33.95vh var(--star-c), 1.39vw 33.95vh 3.5px var(--star-glow),
+    89.80vw 44.37vh var(--star-c), 89.80vw 44.37vh 3.5px var(--star-glow),
+    17.32vw 46.20vh var(--star-c), 17.32vw 46.20vh 3.5px var(--star-glow),
+    98.98vw 36.30vh var(--star-c), 98.98vw 36.30vh 3.5px var(--star-glow),
+    8.29vw 46.44vh var(--star-c), 8.29vw 46.44vh 3.5px var(--star-glow);
+  animation: sky-twinkle 8.6s ease-in-out -4.4s infinite;
+}
+
+/* Light theme: same maps, pastel blue/violet/pink tints */
+[data-theme="light"] .sky-stars-a {
+  --star-c: rgba(56, 189, 248, 0.75);
+  --star-glow: rgba(56, 189, 248, 0.22);
+}
+[data-theme="light"] .sky-stars-b {
+  --star-c: rgba(167, 139, 250, 0.80);
+  --star-glow: rgba(167, 139, 250, 0.22);
+}
+[data-theme="light"] .sky-stars-c {
+  --star-c: rgba(244, 114, 182, 0.80);
+  --star-glow: rgba(244, 114, 182, 0.22);
+}
+[data-theme="light"] .sky-stars-dense-a {
+  --star-c: rgba(56, 189, 248, 0.66);
+  --star-glow: rgba(56, 189, 248, 0.18);
+}
+[data-theme="light"] .sky-stars-dense-b {
+  --star-c: rgba(167, 139, 250, 0.68);
+  --star-glow: rgba(167, 139, 250, 0.18);
+}
+[data-theme="light"] .sky-stars-dense-c {
+  --star-c: rgba(244, 114, 182, 0.68);
+  --star-glow: rgba(244, 114, 182, 0.18);
+}
+[data-theme="light"] .sky-stars-extra-y {
+  --star-c: rgba(125, 211, 252, 0.60);
+  --star-glow: rgba(125, 211, 252, 0.16);
+}
+[data-theme="light"] .sky-stars-extra-z {
+  --star-c: rgba(249, 168, 212, 0.62);
+  --star-glow: rgba(249, 168, 212, 0.16);
+}
+
+/* The two "extra" layers only join the sky in the light theme,
+   so the light sky holds 4x the stars by area while the dark one
+   holds exactly 2x. */
+.sky-stars-extra-y,
+.sky-stars-extra-z {
+  display: none;
+}
+[data-theme="light"] .sky-stars-extra-y,
+[data-theme="light"] .sky-stars-extra-z {
+  display: block;
+}
+
+@keyframes sky-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ------------------------------------------------------------
+   Sparkle stars (4-rayed). Warm white in the dark theme,
+   violet/pink in the light one. A gentle breathing pulse.
+   ------------------------------------------------------------ */
+.sky-spark {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 35%),
+    linear-gradient(to right, transparent 44%, rgba(255, 236, 190, 0.85) 50%, transparent 56%),
+    linear-gradient(to bottom, transparent 44%, rgba(255, 236, 190, 0.85) 50%, transparent 56%);
+  animation: sky-pulse 7s ease-in-out infinite;
+}
+.sky-spark-1 { top: 21%; left: 8%;  animation-delay: -1.2s; }
+.sky-spark-2 { top: 63%; left: 78%; width: 13px; height: 13px; animation-delay: -3.6s; }
+.sky-spark-3 { top: 11%; left: 47%; width: 11px; height: 11px; animation-delay: -5.1s; }
+.sky-spark-4 { top: 80%; left: 21%; width: 12px; height: 12px; animation-delay: -0.4s; }
+
+[data-theme="light"] .sky-spark {
+  background:
+    radial-gradient(circle, rgba(196, 181, 253, 0.95) 0%, rgba(196, 181, 253, 0) 35%),
+    linear-gradient(to right, transparent 44%, rgba(249, 168, 212, 0.90) 50%, transparent 56%),
+    linear-gradient(to bottom, transparent 44%, rgba(249, 168, 212, 0.90) 50%, transparent 56%);
+}
+
+@keyframes sky-pulse {
+  0%, 100% { opacity: 0.35; transform: rotate(8deg) scale(0.80); }
+  50%      { opacity: 0.95; transform: rotate(8deg) scale(1.15); }
+}
+
+/* ------------------------------------------------------------
+   The orb: a glowing moon (dark) / warm sun (light). It lives in
+   .sky-parallax, which app.js translates by -scrollY / 6.
+   ------------------------------------------------------------ */
+.sky-parallax {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.sky-orb {
+  position: absolute;
+  top: 24vh;
+  right: 8vw;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(
+          circle at 38% 32%,
+          #ffffff 0%,
+          #eef2fb 45%,
+          #c7d2e9 78%,
+          #b6c4e2 100%
+  );
+  box-shadow: 0 0 36px 10px rgba(214, 228, 255, 0.40),
+  0 0 110px 34px rgba(190, 210, 255, 0.22);
+}
+[data-theme="light"] .sky-orb {
+  background: radial-gradient(
+    circle at 42% 36%,
+    #fff396 100%,
+    #ffe58a 78%,
+    #ffcf53 42%,
+    #ffb63c 0%
+  );
+  box-shadow:
+    0 0 40px 12px rgba(255, 205, 80, 0.45),
+    0 0 120px 44px rgba(255, 190, 80, 0.28);
+}
+
+/* Motion-sensitive users get a calm static sky */
+@media (prefers-reduced-motion: reduce) {
+  .sky-stars-a, .sky-stars-b, .sky-stars-c,
+  .sky-stars-dense-a, .sky-stars-dense-b, .sky-stars-dense-c,
+  .sky-stars-extra-y, .sky-stars-extra-z, .sky-spark {
+    animation: none;
+  }
+}

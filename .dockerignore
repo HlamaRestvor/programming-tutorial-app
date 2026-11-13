@@ -1,0 +1,50 @@
+# =============================================================
+# Docker build context exclusions.
+# Everything listed here is NOT sent to the docker daemon on
+# `docker build` — keeps the context tiny and keeps secrets
+# and local data out of image layers.
+# =============================================================
+
+# Rust build artifacts (target/ alone can be gigabytes)
+/target/
+**/*.rs.bk
+
+# Git repository metadata
+.git/
+.gitignore
+.gitattributes
+
+# SQLite database + WAL sidecars — production data must NEVER
+# be baked into an image; the container creates its own in /data
+/app.db
+/app.db-shm
+/app.db-wal
+/*.db
+/*.db-shm
+/*.db-wal
+
+# Local env / secrets — passed via compose env / platform UI instead
+.env
+.env.*
+*.pem
+*.key
+
+# Docs and local-only materials
+/references
+/DEPLOY.md
+/README.md
+
+# Editor / OS noise
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# Scratch dirs used for smoke tests
+/smoke/
+
+# Docker files themselves (no need inside the context)
+Dockerfile
+docker-compose.yml
+.dockerignore

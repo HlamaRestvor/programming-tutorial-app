@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize line endings to LF on commit
+* text=auto eol=lf
+
+# Explicitly declare text files you want to always be normalized and not converted to CRLF on checkout
+*.rs text eol=lf
+*.tera text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+.gitignore text eol=lf
+.dockerignore text eol=lf
+
+# Denote all binary files that should not be modified by Git
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.db binary

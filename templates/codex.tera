@@ -1,0 +1,60 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ translation.codex_title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/codex.css">
+{% endblock %}
+
+{% block content %}
+<div class="codex-container">
+
+  <!-- Hero Section -->
+  <header class="codex-hero">
+    <div class="codex-badge">📖 {{ translation.codex_badge }}</div>
+    <h1 class="codex-title">{{ translation.codex_title }}</h1>
+    <p class="codex-subtitle">{{ translation.codex_subtitle }}</p>
+  </header>
+
+  <!-- Player Mastery Progress -->
+  <div class="codex-progress-bar-wrap">
+    <div class="progress-info">
+      <span class="progress-label">{{ translation.codex_entries_count }}</span>
+      <span class="progress-val">{{ user_stats.completed_count }} / {{ codex_total }}</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width: {{ codex_percent }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Sections grid: 11 chapters of the Rust world -->
+  <div class="codex-sections-grid">
+    {% for ch in chapters %}
+    <article class="codex-section-card {% if ch.completed_all %}mastered{% endif %}">
+      <div class="codex-card-top">
+        <span class="codex-card-icon">{{ ch.icon }}</span>
+        <span class="codex-card-num">§{{ ch.number }}</span>
+      </div>
+
+      <h3 class="codex-card-title">{{ ch.title }}</h3>
+      <p class="codex-card-desc">{{ ch.desc }}</p>
+
+      <div class="codex-card-progress">
+        <div class="progress-track">
+          <div class="progress-fill" style="width: {{ ch.progress_percent }}%;"></div>
+        </div>
+        <span class="codex-card-count">{{ ch.completed_count }} / {{ ch.quest_count }}</span>
+      </div>
+
+      <div class="codex-card-links">
+        <a class="quest-btn-link" href="/adventures/{{ ch.id }}?lang={{ lang }}">🗂️ {{ translation.open_section }} &rarr;</a>
+        {% if ch.has_article %}
+        <a class="quest-btn-link article-link" href="/codex/{{ ch.id }}/article?lang={{ lang }}">📜 {{ translation.open_article }}</a>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

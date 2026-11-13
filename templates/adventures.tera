@@ -1,0 +1,97 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ translation.adventures_title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/adventures.css">
+{% endblock %}
+
+{% block content %}
+<div class="adventures-container">
+
+  <!-- Hero Header -->
+  <header class="adventures-hero">
+    <div class="adventures-badge">🗺️ {{ translation.adventures_badge }}</div>
+    <h1 class="adventures-title">{{ translation.adventures_title }}</h1>
+    <p class="adventures-subtitle">{{ translation.adventures_subtitle }}</p>
+
+    <!-- Player Stats Overview Bar -->
+    <div class="stats-overview-bar">
+      <div class="stat-card">
+        <span class="stat-icon">✨</span>
+        <div class="stat-info">
+          <span class="stat-value" id="adv-player-xp">{{ user_stats.xp }}</span>
+          <span class="stat-label">{{ translation.adventures_stat_xp }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">🏆</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ user_stats.completed_count }} <span class="stat-total">/ {{ total_quests_num }}</span></span>
+          <span class="stat-label">{{ translation.adventures_stat_completed }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <svg class="fg-svg" width="36" height="28" viewBox="0 0 18 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pixel Ferris">{% include "partials/fg_pixel_body.tera" %}</svg>
+        <div class="stat-info">
+          <span class="stat-value">
+            {% if user_stats.xp >= 100 %}
+              {{ translation.adventures_rank_adept }}
+            {% else %}
+              {{ translation.adventures_rank_beginner }}
+            {% endif %}
+          </span>
+          <span class="stat-label">{{ translation.adventures_stat_rank }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- World 1: Rust (Active Realm) — 11 chapters -->
+  <section class="realm-section active-realm">
+    <div class="realm-header">
+      <div class="realm-badge-icon">
+        <svg class="fg-svg fg-bob" width="36" height="28" viewBox="0 0 18 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pixel Ferris">{% include "partials/fg_pixel_body.tera" %}</svg>
+      </div>
+      <div class="realm-title-group">
+        <div class="realm-tags">
+          <span class="tag-status active">● {{ translation.world_rust_status }}</span>
+          <span class="tag-lang">Rust 2024 Edition</span>
+        </div>
+        <h2 class="realm-title">{{ translation.world_rust_title }}</h2>
+        <p class="realm-desc">{{ translation.world_rust_desc }}</p>
+      </div>
+    </div>
+
+    <!-- Chapter cards grid: each chapter is its own paginated path -->
+    <div class="chapters-grid">
+      {% for ch in chapters %}
+      <a href="/adventures/{{ ch.id }}?lang={{ lang }}" class="chapter-card {% if ch.completed_all %}completed{% endif %}">
+        <div class="chapter-card-top">
+          <span class="chapter-card-icon">{{ ch.icon }}</span>
+          <span class="chapter-card-num">§{{ ch.number }}</span>
+        </div>
+        <h3 class="chapter-card-title">{{ ch.title }}</h3>
+        <p class="chapter-card-desc">{{ ch.desc }}</p>
+        <div class="chapter-card-progress">
+          <span class="chapter-progress-label">{{ translation.chapter_progress_label }}</span>
+          <span class="chapter-progress-val">{{ ch.completed_count }} / {{ ch.quest_count }}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: {{ ch.progress_percent }}%;"></div>
+        </div>
+        <div class="chapter-card-footer-row">
+          <span class="chapter-card-status">
+            {%- if ch.completed_all %}✅{% elif ch.completed_count > 0 %}🌿{% else %}✨{% endif -%}
+          </span>
+          <span class="chapter-card-count">{{ ch.quest_count }} {{ translation.total_quests }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

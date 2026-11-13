@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ferris_garden_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=sqlite:///data/app.db?mode=rwc
+      - RUST_LOG=info,programming_tutorial_app=debug,tower_http=info
+      # Brevo Transactional Email Service (the only email provider;
+      # Google OAuth was fully removed from the project)
+      - BREVO_API_KEY=${BREVO_API_KEY:-}
+      # Host port override: set PORT in .env or your shell if 3000 is taken
+      # (the container itself always listens on 3000)
+    volumes:
+      - ferris_data:/data
+
+volumes:
+  ferris_data:
+    driver: local

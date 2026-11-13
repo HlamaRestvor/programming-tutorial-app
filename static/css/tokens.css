@@ -1,0 +1,168 @@
+﻿@font-face {
+  font-family: 'Google Sans';
+  src: url('/static/fonts/google-sans/GoogleSans-VariableFont_GRAD,opsz,wght.ttf') format('woff');
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Google Sans';
+  src: url('/static/fonts/google-sans/GoogleSans-Italic-VariableFont_GRAD,opsz,wght.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/static/fonts/jb-mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/static/fonts/jb-mono/JetBrainsMono-Italic-VariableFont_wght.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+
+:root {
+  /* Common Brand Colors */
+  --font-sans: "Google Sans", 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+  font-variant-ligatures: contextual;
+
+  --pastel-peach: #ffd6cc;
+  --pastel-pink: #fbcfe8;
+  --pastel-lavender: #e9d5ff;
+  --pastel-mint: #bbf7d0;
+  --pastel-sky: #bae6fd;
+  --pastel-lemon: #fef08a;
+  --pastel-coral: #fda4af;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 9999px;
+  
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.16);
+  --shadow-glow: 0 0 24px rgba(244, 114, 182, 0.35);
+
+  --radius--fairy-cursor: 12px;
+  
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --container-max: 1140px;
+}
+
+/* Dark Theme (Default) */
+[data-theme="dark"], :root:not([data-theme="light"]) {
+  --bg-primary: #12131c;
+  --bg-secondary: rgb(from #1a1c29 r g b / .5);
+  --bg-tertiary: linear-gradient(
+    rgba(from #60234b r g b / .5), rgba(from #274465 r g b / .5)
+  );
+  --bg-surface: rgb(from #222536 r g b / .5);
+  --bg-glass: rgba(30, 34, 52, 0.5);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-secondary: #34384e;
+  --border-focus: #f472b6;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-func: #fde047;
+  --text-string: #4ade80;
+  --text-muted: #94a3b8;
+  --text-slot-input: #fbcfe8;
+  
+  --accent-primary: #ff93e6;
+  --accent-grad: linear-gradient(90deg, #b1c9ff, #b5a1ff, #ff88c7);
+  --accent-secondary: #38bdf8;
+  --accent-success: #4ade80;
+  --accent-warning: #fbbf24;
+  
+  --code-bg: rgb(from #151722 r g b / .5);;
+  --code-border: #2e334a;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #faf8ff;
+  --bg-secondary: rgb(from #fcf3fc r g b / .5);
+  --bg-tertiary: linear-gradient(rgb(255 204 250 / 0.5), rgb(195 222 255 / 0.5));
+  --bg-surface: rgb(from #ffffff r g b / .5);
+  --bg-glass: rgb(from #ffffff r g b / .5);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-focus: #c884a1;
+  --border-secondary: #ffddfb;
+  
+  --text-primary: #1e1b4b;
+  --text-secondary: #475569;
+  --text-func: #ffae00;
+  --text-string: #00bf44;
+  --text-muted: #64748b;
+  --text-slot-input: #ff77c3;
+  
+  --accent-primary: #db2777;
+  --accent-grad: linear-gradient(90deg, #00b2ff, #6e6eff, #ff37a9);
+  --accent-secondary: #0284c7;
+  --accent-success: #16a34a;
+  --accent-warning: #d97706;
+  
+  --code-bg: rgb(from #f8f6fd r g b / .5);
+  --code-border: #e2e8f0;
+}
+
+/* Global Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+  font-size: clamp(12px, calc(10px + 0.556vw), 16px); /* the viewport of 360px to 1080px */
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.slot-input {
+  /* The visual token element is now an <output> mirror: Chromium/Blink
+     breaks JetBrains Mono ligatures inside <input>, so the editable field
+     is invisible and the mirror renders the ligatures. */
+}
+button {
+  font-family: inherit;
+}
+
+/* Chromium/Blink's UA stylesheet assigns <code>, <kbd>, <samp> and <pre> the
+   generic `font-family: monospace` (Consolas on Windows — which has NO
+   ligatures). A UA rule on the element itself beats plain inheritance, so
+   JetBrains Mono inherited from a parent (.lig-table) silently loses the
+   duel — this is why the left column of the ligature table rendered raw
+   glyphs while the <span>-based typers ligated fine. Pin the app mono stack
+   explicitly. */
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1;
+}

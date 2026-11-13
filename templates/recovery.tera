@@ -1,0 +1,84 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ translation.recovery_title }} · Ferris Garden{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/account.css">
+{% endblock %}
+
+{% block content %}
+<div class="account-container recovery-container">
+
+  <!-- Hero Header -->
+  <header class="account-hero">
+    <div class="account-badge">{{ translation.recovery_badge }}</div>
+    <h1 class="account-title">{{ translation.recovery_title }}</h1>
+    <p class="account-desc">{{ translation.recovery_desc }}</p>
+
+    <!-- Grumpy-then-cozy Ferris companion -->
+    <div class="mascot-speech-bubble">
+      <div class="mascot-mini-avatar">
+        <svg class="fg-svg" width="36" height="28" viewBox="0 0 18 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pixel Ferris">{% include "partials/fg_pixel.tera" %}</svg>
+      </div>
+      <p class="mascot-text">{{ translation.recovery_step1_intro }}</p>
+    </div>
+  </header>
+
+  <div class="account-grid recovery-grid">
+
+    <!-- ============================================================
+         Step 1 — email → 6-digit code (purpose = 'recovery')
+         ============================================================ -->
+    <section class="account-card" id="recovery-step-1">
+      <h2 class="account-card-title">📬 {{ translation.auth_send_code }}</h2>
+
+      <form class="account-form" id="form-recovery-1" novalidate>
+        <label class="account-label">
+          {{ translation.auth_email }}
+          <input type="email" class="input-field" id="input-recovery-email" autocomplete="email">
+        </label>
+        <div class="account-status" id="recovery-status-1" hidden></div>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_send_code }}</button>
+      </form>
+    </section>
+
+    <!-- ============================================================
+         Step 2 — code + the newly forged password
+         ============================================================ -->
+    <section class="account-card" id="recovery-step-2" hidden>
+      <h2 class="account-card-title">⚒️ {{ translation.recovery_new_password }}</h2>
+
+      <p class="account-info-text">{{ translation.recovery_step2_intro }}</p>
+
+      <form class="account-form" id="form-recovery-2" novalidate>
+        <label class="account-label">
+          {{ translation.auth_confirm_code }}
+          <input type="text" class="input-field input-code" id="input-recovery-code"
+            maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        </label>
+        <label class="account-label">
+          {{ translation.recovery_new_password }}
+          <input type="password" class="input-field" id="input-recovery-password"
+            autocomplete="new-password" minlength="8">
+        </label>
+        <div class="account-status" id="recovery-status-2" hidden></div>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_verify }}</button>
+      </form>
+
+      <p class="account-note">{{ translation.auth_email_sent_multi_hint }}</p>
+    </section>
+
+    <!-- ============================================================
+         Success panel
+         ============================================================ -->
+    <section class="account-card" id="recovery-success-card" hidden>
+      <h2 class="account-card-title">🌸 {{ translation.recovery_title }}</h2>
+      <p class="account-info-text recovery-success-text">{{ translation.recovery_success }}</p>
+      <a class="btn-auth-primary btn-full recovery-success-link" href="/?lang={{ lang }}">
+        {{ translation.recovery_back_to_login }}
+      </a>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{#- 500 — Internal Server Error (English-only, standalone; see partials/error_shell.tera).
+    `error_message` is the human-readable database failure taken from the
+    backend context — it should explain what went wrong in plain words. -#}
+{% set code = "500" %}
+{% set error_title = "The compiler panicked" %}
+{% set error_message = error_message | default(value="Something broke deep inside the Garden's soil while serving this page. It is not your fault — try again in a moment.") %}
+{% include "partials/error_shell.tera" %}

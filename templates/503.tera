@@ -1,0 +1,6 @@
+{#- 503 — Service Unavailable (English-only, standalone; see partials/error_shell.tera).
+    `error_message` comes from the backend context (the renderer of this page). -#}
+{% set code = "503" %}
+{% set error_title = "The garden gate is closed" %}
+{% set error_message = error_message | default(value="The service is temporarily unavailable — Ferris is carrying out maintenance on the beds. Please water this path again in a little while.") %}
+{% include "partials/error_shell.tera" %}

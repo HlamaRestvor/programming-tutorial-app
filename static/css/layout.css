@@ -1,0 +1,941 @@
+﻿/* Scroll progress bar: an 8px strip filled with the accent
+   gradient, pinned to the very top edge of the sticky header.
+   scaleX runs 0 → 1 with the page scroll (app.js), so the full
+   gradient is always visible across whatever width is filled. */
+.scroll-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: var(--accent-grad);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  /*z-index: 20; !* above the header glass, below modals *!*/
+  pointer-events: none;
+  /*box-shadow: 0 1px 12px rgba(148, 128, 255, 0.35);*/
+}
+
+/* ============================================================
+   Ferris mascots (templates/partials/fg_*.tera) — shared motion.
+   .fg-bob sways the whole figure; .fg-spark twinkles the 4-ray
+   sparkles around the "with glitter" variants. The wrapper <g>
+   keeps translate/scale, the inner path carries the animation.
+   ============================================================ */
+.fg-svg { display: block; }
+
+.fg-bob {
+  animation: fg-bob 1s ease-in-out infinite alternate;
+}
+@keyframes fg-bob {
+  from { transform: translateY(0) rotate(0deg); }
+  to   { transform: translateY(-7px) rotate(2.4deg); }
+}
+
+.fg-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-twinkle 2s ease-in-out infinite;
+}
+.fg-spark.s2 { animation-duration: 3s; animation-delay: -1.1s; }
+.fg-spark.s3 { animation-duration: 2s; animation-delay: -1.8s; }
+@keyframes fg-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.55) rotate(0deg); }
+  50%      { opacity: 1;    transform: scale(1.12) rotate(24deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-bob, .fg-spark { animation: none; }
+}
+
+/* ============================================================
+   Ferris Grumpy (partials/fg_grumpy.tera) — wrong-answer mood.
+   The whole crab trembles with indignation, the 💢 anger vein
+   pulses, the brows twitch and the tears well up.
+   ============================================================ */
+.fg-grump {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-grump-shake 0.9s ease-in-out infinite;
+}
+@keyframes fg-grump-shake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25%      { transform: rotate(-1.6deg) translateX(-1.2px); }
+  75%      { transform: rotate(1.6deg) translateX(1.2px); }
+}
+
+.fg-grump-vein {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-grump-pop 1.1s ease-in-out infinite;
+}
+.fg-grump-vein.v2 { animation-delay: -0.4s; }
+@keyframes fg-grump-pop {
+  0%, 100% { opacity: 0.45; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1.18); }
+}
+
+.fg-grump-brows {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-grump-brow 2.4s ease-in-out infinite;
+}
+@keyframes fg-grump-brow {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.6px); }
+}
+
+.fg-grump-tear {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-grump-tear 2.8s ease-in-out infinite;
+}
+.fg-grump-tear.t2 { animation-delay: -1.4s; }
+@keyframes fg-grump-tear {
+  0%, 100% { opacity: 0.35; transform: translateY(0) scale(0.85); }
+  50%      { opacity: 0.95; transform: translateY(2.5px) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-grump, .fg-grump-vein, .fg-grump-brows, .fg-grump-tear { animation: none; }
+}
+
+/* Native CSS Nesting for Header & Nav */
+.header {
+  position: sticky;
+  container-type: inline-size;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition-normal), border-color var(--transition-normal);
+
+  .header-container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  @media (width < 768px) {
+    /*.brand-title {}*/
+    /*.header-container {*/
+    /*  flex-direction: column;*/
+    /*  align-items: stretch;*/
+    /*}*/
+    /*.logo {*/
+    /*  justify-content: center;*/
+    /*}*/
+    /*.nav-actions {*/
+    /*  justify-content: space-around;*/
+    /*}*/
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.15rem;
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-lavender));
+      box-shadow: 0 4px 10px rgba(244, 114, 182, 0.25);
+      transition: transform var(--transition-normal);
+    }
+
+    &:hover .logo-badge {
+      transform: scale(1.08) rotate(5deg);
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+
+      .brand-name {
+        line-height: 1;
+        transition: all var(--transition-normal);
+      }
+      .brand-sub {
+        color: var(--text-muted);
+        font-weight: 500;
+        transition: all var(--transition-normal);
+      }
+    }
+  }
+
+  /* Page Navigation moved to the LEFT SIDEBAR (see sidebar section below) */
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    #theme-picker {}
+    .lang-picker, .theme-picker {
+      font-family: inherit;
+      font-weight: 400;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.4rem .8rem;
+      height: 2.5rem;
+      border-radius: var(--radius-full);
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      outline: none;
+      transition: all var(--transition-normal);
+
+      &:hover {
+        border-color: var(--border-focus);
+        box-shadow: var(--shadow-sm);
+      }
+    }
+    
+    .btn-play-header {
+      background: linear-gradient(135deg, #f472b6, #c084fc);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 0 .75rem;
+      align-content: center;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
+
+      transition: all var(--transition-normal) /*transform var(--transition-normal), box-shadow var(--transition-normal)*/;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(244, 114, 182, 0.45);
+      }
+    }
+  }
+}
+@container (680px <= width) {
+  .header {
+    .brand-name {
+      font-size: 1rem;
+    }
+    .brand-sub {
+      font-size: .75rem;
+    }
+    .btn-play-header {
+      font-size: 1rem;
+      height: 2.5rem;
+    }
+  }
+}
+@container (width < 680px) {
+  .header {
+    .brand-name {
+      font-size: .9rem;
+    }
+    .brand-sub {
+      font-size: .6rem;
+    }
+    .nav-actions .xp-badge {
+      padding: .4rem .6rem;
+    }
+    .btn-play-header {
+      height: 2.5rem;
+    }
+    .nav-actions .theme-picker,
+    .nav-actions .lang-picker {
+      padding: .4rem;
+    }
+    .nav-actions .xp-unit {
+      font-size: .8rem;
+    }
+  }
+}
+@container (width < 640px) {
+  .header {
+    .xp-unit {
+      display: none;
+    }
+    .lang-picker {
+      width: 3.6rem;
+    }
+    .theme-picker {
+      width: 3.6rem;
+    }
+  }
+}
+@container (width < 480px) {
+  .header .logo .brand-title {
+    display: none;
+  }
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+
+/* Fairy Cursor & Footer */
+/* Glowing Cursor Follower */
+.fairy-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: calc(2 * var(--radius--fairy-cursor));
+  height: calc(2 * var(--radius--fairy-cursor));
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  will-change: transform;
+
+  .fairy-orb {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fbcfe8 0%, rgba(244, 114, 182, 0.7) 40%, transparent 80%);
+    box-shadow: 0 0 16px rgba(244, 114, 182, 0.9), 0 0 28px rgba(192, 132, 252, 0.6);
+    animation: fairyPulse 2s infinite ease-in-out;
+  }
+}
+
+@keyframes fairyPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  /* extra bottom padding keeps the footer text clear of the fixed dock */
+  padding: 2rem 1.25rem 7.5rem;
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+
+  .footer-container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    @media (max-width: 600px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .footer-love {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+}
+
+
+
+/* XP Badge */
+/* Stage 2: Player Stats & XP Badge */
+.xp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: .4rem .8rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  /*transition: transform var(--transition-normal), box-shadow var(--transition-normal);*/
+
+  .xp-icon {
+    animation: pulseIcon 2.5s infinite ease-in-out;
+  }
+
+  .xp-value {
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+
+  .xp-unit {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  &:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 114, 182, 0.25);
+  }
+}
+
+.quest-done-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: var(--accent-success);
+  margin-left: 0.6rem;
+}
+
+
+/* Auth UI */
+/* =============================================================
+ * STAGE 3: AUTH UI COMPONENTS
+ * ============================================================= */
+
+/* Auth nav buttons moved to the LEFT SIDEBAR below.
+   btn-auth-primary is still used by modal submit buttons. */
+
+.btn-auth-primary {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+
+  &:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  &.btn-full {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Header auth buttons moved to the LEFT SIDEBAR below (.sidebar-btn).
+   .btn-auth-secondary / .auth-user-pill have no remaining usages — removed.
+   .btn-auth-primary is still used by modal submit buttons. */
+
+/* --- Modal overlay --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1rem;
+
+  /* shown by removing [hidden]; we animate opacity */
+  animation: modal-fade-in 0.2s ease;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --- Modal card --- */
+.modal-card {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem 2.25rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  @media (max-width: 480px) {
+    padding: 1.5rem 1.25rem;
+  }
+}
+.modal-card, .auth-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.25rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-normal), background var(--transition-normal);
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* --- Auth form --- */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.auth-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.input-field {
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  outline: none;
+
+  &::placeholder {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  &:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.15);
+  }
+
+  /* Verification code — big centered digits */
+  &.input-code {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+    text-align: center;
+  }
+}
+
+.auth-error {
+  font-size: 0.82rem;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.7rem;
+}
+
+.auth-info-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* --- Divider --- */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+}
+
+/* --- Google button --- */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+
+  &:hover {
+    border-color: #4285F4;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.18);
+  }
+}
+
+/* --- Switch link at bottom --- */
+.auth-switch {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+
+  .auth-switch-btn {
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: inherit;
+    cursor: pointer;
+    padding: 0 0.1rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+/* --- Auth step visibility --- */
+.auth-step[hidden] {
+  display: none;
+}
+
+/* --- "Keep progress" checkbox + ⓘ tooltip (login / register / logout) --- */
+.auth-keep-progress {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.keep-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.keep-checkbox {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Clickable round ⓘ hint */
+.keep-help {
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  transition: color var(--transition-normal), border-color var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.keep-help:hover,
+.auth-keep-progress.tip-open .keep-help {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.35);
+}
+
+/* Absolute popover shown on hover, focus-within, or click (tip-open) */
+.keep-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 0.55rem);
+  left: 0;
+  z-index: 1200;
+  max-width: 260px;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  animation: modal-fade-in 0.15s ease;
+}
+
+.auth-keep-progress:hover .keep-tip,
+.auth-keep-progress:focus-within .keep-tip,
+.auth-keep-progress.tip-open .keep-tip {
+  display: block;
+}
+
+/* =============================================================
+ * BOTTOM NAVIGATION DOCK (base for all pages)
+ * Floating pill fixed to the bottom-center of the viewport:
+ * round icon-above-label buttons in a row; a thin separator
+ * (~75% of the dock height) divides the page nav from the auth
+ * buttons (Sign in / Sign up for guests, Sign out when logged in).
+ * ============================================================= */
+.dock-nav {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0.5rem));
+  transform: translateX(-50%);
+  z-index: 500; /* above header (100); below modal overlays (1000) */
+  display: flex;
+  align-items: stretch;
+  gap: .6rem;
+  padding: .6rem .6rem;
+  background: var(--bg-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  box-shadow: var(--shadow-lg);
+}
+
+.dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+  width: 4rem;
+  height: 4rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--border-secondary);
+  border-radius: 9999px;
+  /*border-color: var(--bg-secondary);*/
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--transition-normal), background var(--transition-normal),
+    border-color var(--transition-normal), transform var(--transition-normal);
+
+  .dock-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: color var(--transition-normal), filter var(--transition-normal);
+  }
+
+  /* Inline vector icons: stroke = currentColor, hue themed per icon below
+     (vivid candy colors in dark, soft grey in light). */
+  .dock-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .dock-label {
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    transform: translateY(-2px);
+  }
+
+  &:hover .dock-icon {
+    filter: brightness(1.12);
+  }
+
+  &.active {
+    color: var(--accent-primary);
+    background: var(--bg-tertiary);
+  }
+
+  &.active .dock-icon {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.55));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Per-icon theming for the vector dock icons. */
+[data-theme="dark"] .dock-home    .dock-icon { color: #ffb1e5; }
+[data-theme="dark"] .dock-map     .dock-icon { color: #8ad7ff; }
+[data-theme="dark"] .dock-codex   .dock-icon { color: #c3a6ff; }
+[data-theme="dark"] .dock-trophy  .dock-icon { color: #ffd166; }
+[data-theme="dark"] .dock-account .dock-icon { color: #7ee7c7; }
+[data-theme="dark"] .dock-sprout  .dock-icon { color: #86efac; }
+[data-theme="dark"] .dock-key     .dock-icon { color: #ffe08a; }
+[data-theme="dark"] .dock-exit    .dock-icon { color: #ffaab4; }
+
+[data-theme="light"] .dock-btn .dock-icon { color: #9aa6bd; }
+[data-theme="light"] .dock-btn.active .dock-icon { color: var(--accent-primary); }
+
+/* Thin vertical rule between page nav and auth buttons: ~75% of the
+   dock height (4.6rem), centered vertically. */
+.dock-sep {
+  align-self: center;
+  flex-shrink: 0;
+  width: 1px;
+  height: 3.4rem;
+  background: var(--border-color);
+}
+
+.dock-auth-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+/*@media (max-width: 640px) {*/
+/*  .dock-nav {*/
+/*    padding: 0.3rem 0.4rem;*/
+/*    max-width: calc(100vw - 1rem);*/
+/*  }*/
+/*  .dock-btn {*/
+/*    width: 52px;*/
+/*    height: 52px;*/
+/*    padding: 0 0.5rem;*/
+/*    font-size: 0.62rem;*/
+
+/*    .dock-icon {*/
+/*      font-size: 1.05rem;*/
+/*    }*/
+/*  }*/
+/*  .dock-sep {*/
+/*    height: 3rem;*/
+/*  }*/
+
+/*  !* The dock owns the bottom strip on phones — lift the toast above it. *!*/
+/*  .achievement-toast {*/
+/*    bottom: 6.5rem;*/
+/*  }*/
+/*}*/
+
+
+/* Floating Achievement Toast — GLOBAL (used on every page, not just leaderboard) */
+.achievement-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--accent-warning);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  /* layered glow: amber halo + fairy-pink outer aura */
+  box-shadow:
+    var(--shadow-lg),
+    0 0 18px rgba(251, 191, 36, 0.45),
+    0 0 44px rgba(244, 114, 182, 0.28);
+  animation: toast-slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .ach-toast-icon {
+    font-size: 2rem;
+    animation: toast-glow-pulse 1.6s infinite ease-in-out;
+  }
+
+  .ach-toast-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    strong {
+      font-size: 0.85rem;
+      color: var(--accent-warning);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+@keyframes toast-glow-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.4));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.85));
+  }
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+

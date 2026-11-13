@@ -1,0 +1,25 @@
+{
+  "name": "ferris-garden",
+  "build": {
+    "type": "dockerfile",
+    "dockerfile": "Dockerfile"
+  },
+  "runtime": {
+    "port": 3000,
+    "health_check": {
+      "path": "/health",
+      "timeout": 5,
+      "interval": 15
+    },
+    "volumes": [
+      {
+        "mount_path": "/data",
+        "size": 1
+      }
+    ],
+    "env": {
+      "DATABASE_URL": "sqlite:///data/app.db?mode=rwc",
+      "RUST_LOG": "info,programming_tutorial_app=debug,tower_http=info"
+    }
+  }
+}

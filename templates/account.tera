@@ -1,0 +1,120 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ translation.account_title }} · Ferris Garden{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/account.css">
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+
+  <!-- Hero Header -->
+  <header class="account-hero">
+    <div class="account-badge">{{ translation.account_badge }}</div>
+    <h1 class="account-title">{{ translation.account_title }}</h1>
+    <p class="account-desc">{{ translation.account_desc }}</p>
+  </header>
+
+  <div class="account-grid">
+
+    <!-- ============================================================
+         CARD 1 — Identity: nickname (always editable, not unique)
+         ============================================================ -->
+    <section class="account-card">
+      <h2 class="account-card-title">🧑‍🌾 {{ translation.auth_nickname }}</h2>
+
+      <form class="account-form" id="form-nickname" novalidate>
+        <label class="account-label">
+          {{ translation.auth_nickname }}
+          <input type="text" class="input-field" id="input-nickname"
+            value="{{ account_nickname }}" maxlength="32" autocomplete="nickname">
+        </label>
+        <div class="account-status" id="nickname-status" hidden></div>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.account_change_nickname }}</button>
+      </form>
+
+      <p class="account-note">
+        {{ translation.auth_logged_in_as }}: <code class="account-email-chip">{{ account_email | escape }}</code>
+      </p>
+    </section>
+
+    <!-- ============================================================
+         CARD 2 — Email change (unique; 2 steps with a code to the
+         NEW address: request → confirm)
+         ============================================================ -->
+    <section class="account-card">
+      <h2 class="account-card-title">📧 {{ translation.account_change_email }}</h2>
+
+      <!-- Step 1: request the code -->
+      <div class="account-step" id="email-step-1">
+        <form class="account-form" id="form-email-1" novalidate>
+          <label class="account-label">
+            {{ translation.account_new_email }}
+            <input type="email" class="input-field" id="input-email-new" autocomplete="email">
+          </label>
+          <div class="account-status" id="email-status-1" hidden></div>
+          <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_send_code }}</button>
+        </form>
+      </div>
+
+      <!-- Step 2: confirm the code -->
+      <div class="account-step" id="email-step-2" hidden>
+        <p class="account-info-text">{{ translation.account_email_code_hint }}</p>
+        <form class="account-form" id="form-email-2" novalidate>
+          <label class="account-label">
+            {{ translation.auth_confirm_code }}
+            <input type="text" class="input-field input-code" id="input-email-code"
+              maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+          </label>
+          <div class="account-status" id="email-status-2" hidden></div>
+          <button type="submit" class="btn-auth-primary btn-full">{{ translation.auth_verify }}</button>
+        </form>
+      </div>
+
+      <p class="account-note">{{ translation.auth_email_sent_multi_hint }}</p>
+    </section>
+
+    <!-- ============================================================
+         CARD 3 — Password (only with the CURRENT one known;
+         otherwise /recovery re-forges the key by email)
+         ============================================================ -->
+    <section class="account-card">
+      <h2 class="account-card-title">🔑 {{ translation.account_change_password }}</h2>
+
+      <form class="account-form" id="form-password" novalidate>
+        <label class="account-label">
+          {{ translation.account_old_password }}
+          <input type="password" class="input-field" id="input-password-old" autocomplete="current-password">
+        </label>
+        <label class="account-label">
+          {{ translation.account_new_password }}
+          <input type="password" class="input-field" id="input-password-new" autocomplete="new-password" minlength="8">
+        </label>
+        <div class="account-status" id="password-status" hidden></div>
+        <button type="submit" class="btn-auth-primary btn-full">{{ translation.account_change_password }}</button>
+      </form>
+
+      <p class="account-note">
+        {{ translation.account_no_old_password }}
+        <a class="account-inline-link" href="/recovery?lang={{ lang }}">{{ translation.auth_forgot_password }}</a>
+      </p>
+    </section>
+
+    <!-- ============================================================
+         CARD 4 — Other devices: merge their progress into THIS
+         session, then kick them out.
+         ============================================================ -->
+    <section class="account-card">
+      <h2 class="account-card-title">📱 {{ translation.account_sessions_title }}</h2>
+      <p class="account-info-text">{{ translation.account_sessions_desc }}</p>
+
+      <button type="button" class="btn-auth-primary btn-full" id="btn-signout-others">
+        {{ translation.account_signout_others }}
+      </button>
+      <div class="account-status" id="sessions-status" hidden></div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

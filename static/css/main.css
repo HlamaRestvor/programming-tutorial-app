@@ -1,0 +1,20 @@
+/**
+ * Ferris Garden - Master CSS Orchestrator
+ *
+ * Modular CSS Component Architecture:
+ * - tokens.css       -> Design tokens, CSS variables, dark/light themes, reset & typography
+ * - layout.css       -> Header, navigation bar, footer, auth modal, fairy cursor
+ * - home.css         -> Landing hero, Ferris mascot, spell playground, PWA widget, roadmap
+ * - adventures.css   -> World map, realm islands, chapter cards, quest status pills
+ * - quest_runner.css -> Runic code altar, slot inputs, diagnostics feedback, hints accordion, specs
+ * - codex.css        -> Knowledge codex hero, chapter doctrines, rule cards, code blocks
+ * - leaderboard.css  -> Podium pedestals, rankings table, achievements showcase, unlock toast
+ */
+
+@import url("./tokens.css");
+@import url("./layout.css");
+@import url("./home.css");
+@import url("./adventures.css");
+@import url("./quest_runner.css");
+@import url("./codex.css");
+@import url("./leaderboard.css");

@@ -1,0 +1,50 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ article_title }} - {{ translation.codex_title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/codex.css">
+{% endblock %}
+
+{% block content %}
+<div class="codex-article-container">
+
+  <!-- Breadcrumb -->
+  <nav class="section-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/codex?lang={{ lang }}" class="crumb-link">{{ translation.codex_title }}</a>
+    <span class="crumb-sep">/</span>
+    <a href="/adventures/{{ chapter_id }}?lang={{ lang }}" class="crumb-link">{{ chapter_title }}</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">{{ translation.article_page_badge }}</span>
+  </nav>
+
+  <!-- Article header -->
+  <header class="codex-article-header">
+    <span class="article-badge">📜 {{ translation.article_page_badge }}</span>
+    <h1 class="codex-article-title">{{ article_title }}</h1>
+    <p class="codex-article-sub">{{ chapter_icon }} {{ chapter_title }}</p>
+  </header>
+
+  {% if has_article %}
+  <!-- Long-form article body; every paragraph is trusted server-side HTML -->
+  <article class="codex-article">
+    {% for p in paragraphs %}
+    {{ p | safe }}
+    {% endfor %}
+  </article>
+  {% else %}
+  <!-- No article yet: graceful coming-soon placeholder -->
+  <div class="codex-article-empty">
+    <p>📜 {{ translation.article_coming_soon }}</p>
+    <a href="/adventures/{{ chapter_id }}?lang={{ lang }}" class="quest-btn-link">🗂️ {{ translation.open_section }} &rarr;</a>
+  </div>
+  {% endif %}
+
+  <!-- Footer links -->
+  <footer class="codex-article-footer">
+    <a href="/adventures/{{ chapter_id }}?lang={{ lang }}" class="quest-btn-link">🗂️ {{ chapter_title }}</a>
+    <a href="/codex?lang={{ lang }}" class="quest-btn-link">📖 {{ translation.codex_title }}</a>
+  </footer>
+
+</div>
+{% endblock %}

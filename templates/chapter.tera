@@ -1,0 +1,104 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ chapter_title }} - Ferris Garden{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/adventures.css">
+{% endblock %}
+
+{% block content %}
+<div class="adventures-container">
+
+  <!-- Breadcrumb -->
+  <nav class="chapter-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/adventures?lang={{ lang }}" class="crumb-link">{{ translation.back_to_chapters }}</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">{{ chapter_title }}</span>
+  </nav>
+
+  <!-- Chapter Hero -->
+  <header class="adventures-hero">
+    <div class="adventures-badge">{{ chapter_icon }} §{{ chapter_num }}</div>
+    <h1 class="adventures-title">{{ chapter_title }}</h1>
+    <p class="adventures-subtitle">{{ chapter_desc }}</p>
+
+    <div class="chapter-progress-bar-wrap">
+      <div class="progress-info">
+        <span class="progress-label">{{ translation.chapter_progress_label }}</span>
+        <span class="progress-val">{{ done_count }} / {{ total_count }}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+      </div>
+    </div>
+
+    <div class="chapter-mascot">
+      <svg class="fg-svg" width="46" height="39" viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ferris">{% include "partials/fg_cozy.tera" %}</svg>
+      <p class="chapter-mascot-speech">{{ mascot_speech }}</p>
+    </div>
+  </header>
+
+  <!-- Quest cards of this chapter -->
+  <section class="realm-section active-realm">
+    <div class="quest-grid">
+      {% for q in quests %}
+      <article class="quest-card {% if q.is_completed %}completed{% elif q.is_unlocked %}available{% else %}locked{% endif %}">
+        <div class="quest-card-top">
+          <span class="quest-num">{{ q.number }}</span>
+          <span class="quest-reward">+{{ q.xp_reward }} XP</span>
+        </div>
+
+        <h4 class="quest-card-title">{{ q.title }}</h4>
+        <p class="quest-card-desc">{{ q.concept }}</p>
+
+        <div class="quest-card-footer">
+          {% if q.is_completed %}
+            <span class="quest-status-badge completed">✅ {{ translation.quest_status_completed }}</span>
+            <a href="/quest/{{ q.id }}?lang={{ lang }}" class="btn-quest-action btn-review">🔍 {{ translation.btn_review_quest }}</a>
+          {% elif q.is_unlocked %}
+            <span class="quest-status-badge available">🔓 {{ translation.quest_status_available }}</span>
+            <a href="/quest/{{ q.id }}?lang={{ lang }}" class="btn-quest-action btn-play">⚡ {{ translation.btn_play_quest }}</a>
+          {% else %}
+            <span class="quest-status-badge locked">🔒 {{ translation.quest_status_locked }}</span>
+            <button class="btn-quest-action btn-locked" disabled title="{{ translation.locked_tooltip }}">🔒 {{ translation.quest_status_locked }}</button>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Deep-dive codex article (graceful "coming soon" when absent) -->
+  <section class="chapter-article-teaser">
+    {% if has_article %}
+      <a href="/codex/{{ chapter_id }}/article?lang={{ lang }}" class="btn-article-open">
+        📜 {{ translation.open_article }} &rarr;
+      </a>
+    {% else %}
+      <p class="article-coming-soon">📜 {{ translation.article_coming_soon }}</p>
+    {% endif %}
+  </section>
+
+  <!-- Chapter navigation: prev / all / next -->
+  <nav class="chapter-nav-row" aria-label="Chapters">
+    {% if prev_chapter %}
+      <a href="/adventures/{{ prev_chapter.id }}?lang={{ lang }}" class="chapter-nav-btn prev">
+        {{ prev_chapter.icon }}{{ translation.prev_chapter }}
+      </a>
+    {% else %}
+      <span></span>
+    {% endif %}
+    <a href="/adventures?lang={{ lang }}" class="chapter-nav-btn home">
+      {{ translation.back_to_chapters }}
+    </a>
+    {% if next_chapter %}
+      <a href="/adventures/{{ next_chapter.id }}?lang={{ lang }}" class="chapter-nav-btn next">
+        {{ translation.next_chapter }} {{ next_chapter.icon }}
+      </a>
+    {% else %}
+      <span></span>
+    {% endif %}
+  </nav>
+
+</div>
+{% endblock %}

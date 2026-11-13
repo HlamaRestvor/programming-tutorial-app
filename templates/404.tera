@@ -1,0 +1,6 @@
+{#- 404 — Not Found (English-only, standalone; see partials/error_shell.tera).
+    The backend fallback handler supplies `request_path` = the unmatched URL. -#}
+{% set code = "404" %}
+{% set error_title = "Oh no, you’ve got lost..." %}
+{% set error_message = "This path doesn't grow anywhere in the garden. Maybe the rune was mistyped, or the sprout was never planted at all." %}
+{% include "partials/error_shell.tera" %}

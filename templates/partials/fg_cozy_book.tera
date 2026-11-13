@@ -1,0 +1,11 @@
+{#- Cozy Ferris reading a tiny open book (articles tie-in).
+    Caller provides the <svg> tag: viewBox="0 0 200 170". -#}
+{% include "partials/fg_cozy.tera" %}
+<!-- tiny open book held in front -->
+<g>
+  <path d="M74 140 C84 134 94 134 99 138 L99 154 C94 150 84 150 74 154 Z" fill="#FFF6E0"/>
+  <path d="M126 140 C116 134 106 134 101 138 L101 154 C106 150 116 150 126 154 Z" fill="#FFF9EA"/>
+  <path d="M100 138 L100 154" stroke="#D9C08F" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M80 146 C87 142 92 142 95 144 M80 151 C87 147 92 147 95 149" stroke="#E3D2AC" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M120 146 C113 142 108 142 105 144 M120 151 C113 147 108 147 105 149" stroke="#E3D2AC" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+</g>

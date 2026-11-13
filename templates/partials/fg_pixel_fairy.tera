@@ -1,0 +1,29 @@
+{#- ============================================================
+    Pixel Fairy Ferris — the pixel crab with gossamer fairy
+    wings and a little star wand, in the spirit of the fairy
+    mascots on the reference site.
+    Caller provides the <svg> tag with viewBox="0 0 26 16"
+    and shape-rendering="crispEdges".
+    ============================================================ -#}
+<!-- gossamer wings (behind the body) -->
+<path fill="#FFD9EC" opacity="0.80" d="
+  M2,4 h2 v1 h-2 z M1,5 h3 v1 h-3 z M0,6 h4 v1 h-4 z M1,7 h2 v1 h-2 z M2,8 h1 v1 h-1 z
+"/>
+<path fill="#FFD9EC" opacity="0.80" d="
+  M22,4 h2 v1 h-2 z M22,5 h3 v1 h-3 z M22,6 h4 v1 h-4 z M23,7 h2 v1 h-2 z M23,8 h1 v1 h-1 z
+"/>
+<path fill="#FFFFFF" opacity="0.9" d="M2,6 h1 v1 h-1 z M23,6 h1 v1 h-1 z"/>
+<!-- fairy dust -->
+<path fill="#FFE9A8" d="M2,2 h1 v1 h-1 z" opacity="0.9"/>
+<path fill="#FFC7E0" d="M5,1 h1 v1 h-1 z" opacity="0.85"/>
+<path fill="#BFD4FF" d="M0,3 h1 v1 h-1 z" opacity="0.8"/>
+
+<!-- the crab, shifted right and down -->
+<g transform="translate(4 1)">
+  {% include "partials/fg_pixel_body.tera" %}
+</g>
+
+<!-- star wand in the right claw -->
+<path fill="#8B5E34" d="M21,6 h1 v1 h-1 z M22,5 h1 v1 h-1 z"/>
+<path fill="#FFE066" d="M23,2 h1 v1 h-1 z M22,3 h1 v1 h-1 z M24,3 h1 v1 h-1 z M23,4 h1 v1 h-1 z"/>
+<path fill="#FFFFFF" d="M23,3 h1 v1 h-1 z"/>

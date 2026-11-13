@@ -1,0 +1,280 @@
+/* =============================================================
+ * ERROR SCENES — /404, /503, /500 (standalone pages, English only)
+ * Shared look inspired by the reference 404: a soft pastel card,
+ * a huge serif code with a gradient, a "lost" mood, an address chip
+ * and a pill "back home" button. On top of it: a round binary theme
+ * button (moon ⇄ sun, CSS+SVG animated). Default theme: dark.
+ * All colors come from tokens.css ([data-theme=dark] / [data-theme=light]).
+ * ============================================================= */
+
+.error-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.2rem 1.2rem 3rem;
+  background:
+    radial-gradient(52rem 30rem at 18% -10%, rgba(244, 114, 182, 0.14), transparent 60%),
+    radial-gradient(46rem 28rem at 92% 8%, rgba(125, 211, 252, 0.13), transparent 62%),
+    var(--bg-primary);
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* --- The round binary theme orb (moon ⇄ sun) ------------------------------ */
+.theme-orb {
+  position: fixed;
+  top: max(1.1rem, env(safe-area-inset-top, 0.6rem));
+  right: max(1.1rem, env(safe-area-inset-right, 0.8rem));
+  z-index: 50;
+  width: 3.3rem;
+  height: 3.3rem;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-normal), border-color var(--transition-normal),
+    box-shadow var(--transition-normal), background var(--transition-normal);
+}
+
+.theme-orb:hover {
+  transform: translateY(-2px) rotate(-8deg);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-glow);
+}
+
+.theme-orb:active {
+  transform: scale(0.9);
+}
+
+.theme-orb:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.theme-orb .orb-icon {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: block;
+  overflow: visible;
+}
+
+/* Sun rays spin lazily, forever — the sun is alive. */
+.orb-sun > g {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: orb-spin 14s linear infinite;
+}
+.orb-sun circle { transform-box: fill-box; }
+
+@keyframes orb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Moon ⇄ sun crossfade with a springy rotate-scale swap.
+   html[data-theme] is set by the inline script (dark by default,
+   otherwise the saved value from localStorage['fairy_theme']). */
+.orb-moon, .orb-sun {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html[data-theme="dark"] .orb-sun,
+html:not([data-theme="light"]) .orb-sun {
+  opacity: 0;
+  transform: scale(0.35) rotate(120deg);
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .orb-moon,
+html:not([data-theme="light"]) .orb-moon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+html[data-theme="light"] .orb-sun {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+html[data-theme="light"] .orb-moon {
+  opacity: 0;
+  transform: scale(0.35) rotate(-120deg);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-sun > g, .theme-orb { animation: none; transition: none; }
+}
+
+/* --- The scene & card ------------------------------------------------------ */
+.error-scene {
+  width: min(34rem, 100%);
+}
+
+.error-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 2.4rem 2.2rem 2.6rem;
+  border-radius: 26px;
+  background:
+    radial-gradient(22rem 12rem at 50% -20%, rgba(255, 255, 255, 0.09), transparent 70%),
+    var(--bg-glass);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  text-align: center;
+  animation: error-card-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes error-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Pastel haze behind the card, like the reference's pink aura */
+.error-card::before {
+  content: "";
+  position: absolute;
+  inset: -14rem;
+  background:
+    radial-gradient(14rem 14rem at 30% 18%, rgba(249, 168, 212, 0.16), transparent 70%),
+    radial-gradient(13rem 13rem at 74% 78%, rgba(147, 197, 253, 0.14), transparent 70%);
+  pointer-events: none;
+}
+
+.error-mascot {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -0.4rem;
+  animation: error-mascot-bob 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes error-mascot-bob {
+  from { transform: translateY(0) rotate(-1.5deg); }
+  to   { transform: translateY(-5px) rotate(1.5deg); }
+}
+
+/* The huge serif code with a soft gradient, like the reference 404 */
+.error-code {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-sans);
+  /*font-family: Georgia, 'Times New Roman', 'Noto Serif', serif;*/
+  font-weight: 700;
+  font-size: clamp(4.6rem, 18vw, 7.4rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  background: linear-gradient(115deg, #f9a8d4 8%, #f0abfc 38%, #a5b4fc 72%, #93c5fd 96%);
+  background-size: 160% 160%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: error-code-drift 7s ease-in-out infinite alternate;
+  user-select: none;
+}
+
+html[data-theme="light"] .error-code {
+  background: linear-gradient(115deg, #db2777 8%, #c026d3 38%, #7c3aed 72%, #2563eb 96%);
+  background-size: 160% 160%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@keyframes error-code-drift {
+  from { background-position: 0% 30%; }
+  to   { background-position: 100% 70%; }
+}
+
+.error-title {
+  position: relative;
+  z-index: 1;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.error-desc {
+  position: relative;
+  z-index: 1;
+  max-width: 26rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+/* The "Address /some/path" chip */
+.error-chip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.42rem 0.95rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.error-chip code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-primary);
+  white-space: nowrap;
+}
+
+/* The pink pill button home */
+.error-home-btn {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.7rem;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #fff;
+  background: linear-gradient(135deg, #f472b6, #c084fc);
+  box-shadow: 0 6px 18px rgba(244, 114, 182, 0.4);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.error-home-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 24px rgba(244, 114, 182, 0.55);
+}
+
+.error-home-btn:active { transform: translateY(0); }
+
+.error-home-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .error-card { padding: 1.9rem 1.4rem 2.2rem; }
+  .error-title { font-size: 1.32rem; }
+}

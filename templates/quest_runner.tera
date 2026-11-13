@@ -1,0 +1,204 @@
+{% extends "base.tera" %}
+
+{% block title %}{{ quest_title }} (#{{ quest.number }}) - Ferris Garden{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/quest_runner.css">
+{% endblock %}
+
+{% block content %}
+<div class="runner-container">
+
+  <!-- Breadcrumb Navigation -->
+  <nav class="runner-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/adventures?lang={{ lang }}" class="crumb-link">{{ translation.runner_back_to_map }}</a>
+    <span class="crumb-sep">/</span>
+    <a href="/adventures/{{ chapter_link }}?lang={{ lang }}" class="crumb-link">{{ chapter_title }}</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">{{ quest_title }}</span>
+  </nav>
+
+  <div class="runner-layout">
+
+    <!-- MAIN COLUMN: Briefing + Code Altar -->
+    <main class="runner-main">
+
+      <!-- Quest Briefing & Mascot -->
+      <section class="runner-briefing-card">
+        <div class="briefing-header">
+          <div class="briefing-meta">
+            <span class="briefing-num-badge">{{ translation.runner_quest_number }}{{ quest.number }}</span>
+            <span class="briefing-reward-badge">+{{ quest.xp_reward }} XP</span>
+            {% if is_completed %}
+              <span class="briefing-status-badge completed">✅ {{ translation.quest_status_completed }}</span>
+            {% endif %}
+          </div>
+          <h1 class="briefing-title">{{ quest_title }}</h1>
+          <p class="briefing-concept">{{ quest_concept }}</p>
+        </div>
+
+        <!-- Mascot Companion Speech Bubble -->
+        <div class="runner-mascot-box">
+          <div class="mascot-avatar">
+            <!-- Ferris Cozy — kawaii semi-anime mascot; a wrong rune swaps in
+                 the grumpy twin (partials/fg_grumpy.tera) via app.js. -->
+            <svg id="runner-mascot-cozy" class="fg-svg" width="56" height="48" viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ferris">
+              {% include "partials/fg_cozy.tera" %}
+            </svg>
+            <svg id="runner-mascot-grump" class="fg-svg" width="56" height="48" viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Angry Ferris" hidden>
+              {% include "partials/fg_grumpy.tera" %}
+            </svg>
+          </div>
+          <div class="mascot-speech" id="runner-mascot-speech">
+            {{ mascot_speech }}
+          </div>
+        </div>
+      </section>
+
+      <!-- Runic Code Altar -->
+      <section class="runner-editor-card">
+        <div class="editor-top-bar">
+          <div class="editor-file-tab">
+            <span class="file-icon">🦀</span>
+            <span class="file-name">main.rs</span>
+          </div>
+          <span class="editor-edition-tag">Rust 2024</span>
+        </div>
+
+        <!-- Code lines with strict formatting and slots -->
+        <div class="code-container" id="runner-code-area">
+          {% for line in render_lines %}
+            <div class="code-line">
+              <span class="line-num">{{ loop.index }}</span>
+              <span class="line-code">
+                <span class="indent" style="white-space: pre-wrap;">{{ line.indent_str }}</span>
+
+                {% for piece in line.pieces %}
+                  {% if piece.slot_number == 0 %}
+                    <span class="code-text">{{ piece.text | escape }}</span>
+                  {% else %}
+                    <!-- Chromium/Blink breaks JetBrains Mono ligatures inside
+                         <input> and [contenteditable] (typing right of a
+                         ligature visually eats its first glyph). So the real
+                         <input> is invisible (value holder for JS) and a
+                         visible <output> mirror renders the ligatures. -->
+                    <form class="slot-field" autocomplete="off">
+                      <input
+                        type="text"
+                        class="slot-real"
+                        data-slot-index="{{ piece.slot_number }}"
+                        {% if piece.slot_number == 1 %}id="quest-token-input" autofocus{% else %}id="slot-real-{{ piece.slot_number }}"{% endif %}
+                        aria-label="{{ piece.placeholder_text | escape }}"
+                        maxlength="14"
+                        autocomplete="off"
+                        spellcheck="false"
+                        autocapitalize="off"
+                        value="{% if is_completed %}{{ piece.answer_value | escape }}{% endif %}"
+                      >
+                      <output
+                        {% if piece.slot_number == 1 %}for="quest-token-input"{% else %}for="slot-real-{{ piece.slot_number }}"{% endif %}
+                        class="slot-input runner-slot-input slot-mirror {% if is_completed %}correct{% endif %}"
+                        data-slot-index="{{ piece.slot_number }}"
+                        data-placeholder="{{ piece.placeholder_text | escape }}"
+                      >{% if is_completed %}{{ piece.answer_value | escape }}{% endif %}</output>
+                    </form>
+                  {% endif %}
+                {% endfor %}
+
+                {% if line.comment %}
+                  <span class="code-comment">{{ line.comment | escape }}</span>
+                {% endif %}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Editor Bottom Actions Bar -->
+        <div class="editor-actions-bar">
+          <button type="button" class="btn-compile" id="btn-compile-quest">
+            {{ translation.runner_btn_compile }}
+          </button>
+
+          {% if next_id %}
+            <a
+              href="/quest/{{ next_id }}?lang={{ lang }}"
+              class="btn-next-quest"
+              id="btn-next-quest"
+              {% if not is_completed %}hidden{% endif %}
+            >
+              {{ translation.runner_btn_next }}
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Feedback & Diagnostic Box -->
+        <div
+          class="runner-feedback-box {% if is_completed %}success{% endif %}"
+          id="runner-feedback-box"
+          {% if not is_completed %}hidden{% endif %}
+        >
+          {% if is_completed %}
+            ✨ <span>{{ translation.runner_already_completed_banner }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Hidden quest id for AJAX verification -->
+        <input type="hidden" id="runner-quest-id" value="{{ quest.id }}">
+      </section>
+
+    </main>
+
+    <!-- SIDEBAR: Lore & Grimoire Hints -->
+    <aside class="runner-sidebar">
+
+      <!-- Wisdom & Lore Scroll -->
+      <section class="sidebar-card lore-card">
+        <h3 class="sidebar-card-title">📜 {{ translation.runner_theory_title }}</h3>
+        <p class="sidebar-lore-text">{{ quest_lore }}</p>
+      </section>
+
+      <!-- Ferris Grimoire Hint (Collapsible) -->
+      <section class="sidebar-card hint-card">
+        <details class="hint-details" {% if is_completed %}open{% endif %}>
+          <summary class="hint-summary">
+            <span class="hint-summary-title">💡 {{ translation.runner_hint_title }}</span>
+            <span class="hint-toggle-icon">▾</span>
+          </summary>
+          <div class="hint-content">
+            <p>{{ quest_hint }}</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Navigation & Specs Box -->
+      <section class="sidebar-card specs-card">
+        <div class="spec-row">
+          <span class="spec-label">{{ translation.runner_reward_label }}</span>
+          <span class="spec-val-xp">+{{ quest.xp_reward }} XP</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-label">{{ translation.runner_status_label }}</span>
+          <span class="spec-val-status" id="sidebar-quest-status">
+            {% if is_completed %}
+              ✅ {{ translation.quest_status_completed }}
+            {% else %}
+              🔓 {{ translation.quest_status_available }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="sidebar-links-row">
+          {% if prev_id %}
+            <a href="/quest/{{ prev_id }}?lang={{ lang }}" class="side-nav-btn prev">{{ translation.nav_prev }}</a>
+          {% endif %}
+          {% if next_id %}
+            <a href="/quest/{{ next_id }}?lang={{ lang }}" class="side-nav-btn next">{{ translation.nav_next }}</a>
+          {% endif %}
+        </div>
+      </section>
+
+    </aside>
+
+  </div>
+
+</div>
+{% endblock %}

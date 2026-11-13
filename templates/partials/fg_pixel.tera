@@ -1,0 +1,9 @@
+{#- Pixel Ferris with tiny pixel sparkles in the free corners.
+    Caller provides the <svg> tag with viewBox="0 0 18 14"
+    and shape-rendering="crispEdges". -#}
+{% include "partials/fg_pixel_body.tera" %}
+<!-- corner sparkles (plus-shaped pixel stars + tiny dots) -->
+<path fill="#FFE066" d="M1,0 h1 v1 h-1 z M0,1 h3 v1 h-3 z M1,2 h1 v1 h-1 z" opacity="0.9"/>
+<path fill="#FFC7E0" d="M16,0 h1 v1 h-1 z M15,1 h3 v1 h-3 z M16,2 h1 v1 h-1 z" opacity="0.85"/>
+<path fill="#BFD4FF" d="M7,13 h1 v1 h-1 z" opacity="0.9"/>
+<path fill="#FFE9A8" d="M10,13 h1 v1 h-1 z" opacity="0.85"/>
