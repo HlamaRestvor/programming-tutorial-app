@@ -52,8 +52,7 @@ COPY static /app/static
 RUN mkdir -p /data
 
 # Default runtime configuration (overridable via container env)
-ENV PORT=3000 \
-    DATABASE_URL=sqlite:///data/app.db?mode=rwc \
+ENV DATABASE_URL=sqlite:///data/app.db?mode=rwc \
     RUST_LOG=info,programming_tutorial_app=debug,tower_http=info
 
 EXPOSE 3000

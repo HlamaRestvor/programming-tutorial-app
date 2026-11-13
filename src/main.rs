@@ -125,7 +125,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 7. Bind to Port (compatible with local test & Leapcell remote hosting)
     let port: u16 = (env::var("PORT").ok())
         .and_then(|p| p.parse().ok())
-        .unwrap_or(3000);
+        .unwrap_or(8080);
     let addr = SocketAddr::from(([0; 4], port));
     tracing::info!("✨ Ferris Garden running on http://127.0.0.1:{}", port);
     let listener = TcpListener::bind(addr).await?;
